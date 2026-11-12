@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>(사)오늘은 아트 갤러리</title>
+<meta name="description" content="청년 작가의 오늘을 만나는 곳. (사)오늘은이 함께한 작품과 현재 전시를 소개합니다.">
+<meta property="og:title" content="(사)오늘은 아트 갤러리">
+<meta property="og:description" content="청년 작가의 오늘을 만나는 곳. (사)오늘은이 함께한 작품과 현재 전시를 소개합니다.">
+<meta name="theme-color" content="#1F65B8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231F65B8'/%3E%3Ccircle cx='23' cy='11' r='5' fill='%23A8ECE9'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="home">
+<main>
+<section class="hero">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">● (사)오늘은 아트 갤러리</span>
+      <h1>청년 작가의<br><em>오늘</em>을 만나는 곳</h1>
+      <p class="lead">(사)오늘은이 함께한 작품과 작가의 이야기를 한곳에 모았습니다. 지금 전시 중인 작품부터 소장 작품까지, 작품 앞에 서듯 천천히 둘러보세요.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="now.html">현재 전시 보기 →</a>
+        <a class="btn btn-ghost" href="collection.html">전체 작품 둘러보기</a>
+      </div>
+    </div>
+    <div class="collage" id="collage" aria-hidden="true"></div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:56px">
+  <div class="wrap">
+    <div id="home-notice"></div>
+    <div class="stats reveal">
+      <div class="stat"><b id="st-works">–</b><span>소장 작품</span></div>
+      <div class="stat"><b id="st-artists">–</b><span>함께한 작가</span></div>
+      <div class="stat"><b id="st-projects">–</b><span>선정 프로젝트</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block tint" id="now">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><div class="sec-kicker">Now Showing</div><h2 id="home-now-title">현재 전시</h2>
+      <p>지금 전시장에서 만날 수 있는 작품이에요.</p></div>
+      <a class="link-more" href="now.html">현재 전시 전체 보기 →</a>
+    </div>
+    <div class="grid" id="home-now"></div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><div class="sec-kicker">About</div><h2>오늘은, 이런 곳이에요</h2></div>
+    </div>
+    <div class="about reveal">
+      <div class="card c1"><h3>작품으로 건네는 이야기</h3><p>한 점 한 점에 담긴 작가의 시선과 질문을 함께 읽을 수 있도록, 작품 소개와 작가 소개를 정리해 두었습니다.</p></div>
+      <div class="card c2"><h3>청년과 나누는 대화</h3><p>작품을 매개로 ‘대화청년’이 이야기를 나누는 프로젝트를 이어가며, 작품과 사람 사이의 거리를 좁힙니다.</p></div>
+      <div class="card c3"><h3>누구나 편하게</h3><p>전시장에서도, 집에서도 휴대폰으로 편하게 감상하세요. 마음에 남은 작품이 있다면 방명록에 한 줄 남겨주세요.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block tint-2">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><div class="sec-kicker">Collection</div><h2>소장 작품 미리보기</h2>
+      <p>(사)오늘은이 소장한 작품 중 일부예요.</p></div>
+      <a class="link-more" href="collection.html">전체 작품 보기 →</a>
+    </div>
+    <div class="grid" id="home-pick"></div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><div class="sec-kicker">Guestbook</div><h2>방문객의 한 줄</h2></div>
+      <a class="link-more" href="guestbook.html">방명록 남기기 →</a>
+    </div>
+    <div class="msg-list" id="home-msgs" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
+    <div class="cta-band reveal" style="margin-top:56px">
+      <div><h2>작품 앞에서 느낀 것을<br>방명록에 남겨주세요</h2><p>작가에게도, 다음 방문객에게도 오래 남는 선물이 됩니다.</p></div>
+      <a class="btn" href="guestbook.html">방명록 쓰러 가기</a>
+    </div>
+  </div>
+</section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/sample-data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
