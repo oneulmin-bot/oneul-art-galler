@@ -270,3 +270,9 @@ input:focus,textarea:focus{outline:none;border-color:var(--point);box-shadow:0 0
   .art .meta{display:none}
   .art .ph{font-size:32px}
 }
+
+/* ---------- 현재 소장하지 않는 작품 ---------- */
+.art.gone .thumb img{filter:grayscale(.9);opacity:.6}
+.art.gone .ph{opacity:.6}
+.art .badge.gone{left:auto;right:12px;background:#6b7280}
+.notice.gone{background:var(--lilac)}

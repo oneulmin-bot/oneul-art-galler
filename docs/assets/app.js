@@ -101,6 +101,7 @@
       el("div", { class: "artist", text: a.artist || "" }),
       el("div", { class: "facts" }, facts),
       a.exhibit ? el("div", { class: "notice", text: "📍 현재 전시 중 · " + a.exhibit }) : null,
+      a.held === false ? el("div", { class: "notice gone", text: "이 작품은 현재 (사)오늘은이 소장하고 있지 않아요." }) : null,
       el("h4", { text: "작품 소개" }), el("p", { text: a.intro || "작품 소개 준비 중입니다." }),
       a.bio ? el("h4", { text: "작가 소개" }) : null, a.bio ? el("p", { class: "bio", text: a.bio }) : null,
       a.topic ? el("h4", { text: "대화청년 주제" }) : null, a.topic ? el("p", { text: a.topic }) : null,
@@ -124,7 +125,9 @@
       th.appendChild(im);
     }
     if (showBadge && a.exhibit) th.appendChild(el("span", { class: "badge", text: "전시중" }));
-    return el("button", { class: "art", type: "button", "aria-label": (a.title || "") + " 상세 보기", onclick: function () { openModal(a); } }, [
+    var gone = a.held === false;
+    if (gone) th.appendChild(el("span", { class: "badge gone", text: "현재 미소장" }));
+    return el("button", { class: "art" + (gone ? " gone" : ""), type: "button", "aria-label": (a.title || "") + " 상세 보기", onclick: function () { openModal(a); } }, [
       th,
       el("div", { class: "info" }, [
         el("span", { class: "no", text: a.id || "" }),
@@ -169,7 +172,7 @@
       });
       var artists = {}, projects = {};
       items.forEach(function (a) { if (a.artist) artists[a.artist] = 1; if (a.project) projects[a.project] = 1; });
-      s1.textContent = items.length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
+      s1.textContent = items.filter(function (x) { return x.held !== false; }).length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
 
       var cur = onView(items);
       var sec = $("#home-now-sec");
@@ -182,7 +185,8 @@
         $("#home-now-title").textContent = "곧 새로운 전시로 찾아뵙겠습니다";
       }
       var pick = $("#home-pick");
-      fillGrid(pick, items.filter(function (a) { return a.image; }).slice(0, 4).concat(items.filter(function (a) { return !a.image; })).slice(0, 4), false);
+      var heldItems = items.filter(function (a) { return a.held !== false; });
+      fillGrid(pick, heldItems.filter(function (a) { return a.image; }).slice(0, 4).concat(heldItems.filter(function (a) { return !a.image; })).slice(0, 4), false);
       sampleNotice($("#home-notice"), res);
       loadGuests(3).then(function (g) { renderMsgs($("#home-msgs"), g.items); });
     });
@@ -225,7 +229,14 @@
     skeletons(grid, 8);
     loadArtworks().then(function (res) {
       sampleNotice($("#col-notice"), res);
-      var items = res.items, state = { q: "", project: "전체" };
+      var items = res.items, state = { q: "", project: "전체", heldOnly: false };
+      var heldBtn = $("#heldOnly");
+      if (items.some(function (a) { return a.held === false; })) {
+        heldBtn.hidden = false;
+        heldBtn.addEventListener("click", function () {
+          state.heldOnly = !state.heldOnly; heldBtn.setAttribute("aria-pressed", state.heldOnly); apply();
+        });
+      }
       var projects = ["전체"]; items.forEach(function (a) { if (a.project && projects.indexOf(a.project) < 0) projects.push(a.project); });
       pills.innerHTML = "";
       projects.forEach(function (p) {
@@ -238,6 +249,7 @@
         var term = state.q.trim().toLowerCase();
         var out = items.filter(function (a) {
           if (state.project !== "전체" && a.project !== state.project) return false;
+          if (state.heldOnly && a.held === false) return false;
           if (!term) return true;
           return [a.title, a.artist, a.medium, a.intro, a.id, a.project].join(" ").toLowerCase().indexOf(term) > -1;
         });
