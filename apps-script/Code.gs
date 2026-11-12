@@ -18,6 +18,11 @@
 
 var SHEET_ID = '1KOsZF002BuDbeHEU1c-M8fqVI5uPnZJSnm7gmVDXsik'; // 작품 리스트 스프레드시트 ID
 var ARTWORK_SHEET = '전체DB';
+
+// '반납년도(오늘은 소유)' 열 값에 아래 단어가 하나라도 들어 있으면 '현재 소장하지 않음'으로 표시합니다.
+// (예: '폐기', '(다른분이 구매)'). '2027.12 반환논의' 처럼 논의 중인 값은 아직 소장 중으로 봅니다.
+// 새로운 표기가 생기면 여기에 단어만 추가하세요.
+var NOT_HELD_KEYWORDS = ['폐기', '구매', '판매', '양도', '반환완료', '반환됨', '반납완료', '반납됨', '반환했', '작가반환'];
 var GUEST_SHEET = '방명록';
 var GUEST_HEADERS = ['작성일시', '이름', '내용', '숨김(Y)'];
 
@@ -80,7 +85,7 @@ function getArtworks_() {
     id: col('작품번호'), year: col('제작년도'), project: col('선정프로젝트'), artist: col('작가명'),
     title: col('작품명'), size: col('작품크기'), medium: col('재료'), intro: col('작품소개'),
     bio: col('작가소개'), topic: col('대화청년(주제)'), image: col('작품이미지'),
-    audio: col('음성해설'), exhibit: col('전시중')
+    audio: col('음성해설'), exhibit: col('전시중'), status: col('반납년도')
   };
   // ※ 작가 연락처 / 대화청년(이름/연락처) 열은 의도적으로 읽지 않습니다.
 
@@ -96,7 +101,8 @@ function getArtworks_() {
       id: id, year: get(row, 'year'), project: get(row, 'project'), artist: get(row, 'artist'),
       title: title, size: get(row, 'size'), medium: get(row, 'medium'), intro: get(row, 'intro'),
       bio: get(row, 'bio'), topic: get(row, 'topic'), image: get(row, 'image'),
-      audio: get(row, 'audio'), exhibit: get(row, 'exhibit')
+      audio: get(row, 'audio'), exhibit: get(row, 'exhibit'),
+      held: isHeld_(get(row, 'status'))   // 원문(반납년도 열)은 공개하지 않고 true/false 만 내보냅니다
     });
   }
   return items;
@@ -135,6 +141,14 @@ function getGuests_() {
 }
 
 /* ---------- 유틸 ---------- */
+function isHeld_(status) {
+  var s = norm_(status);
+  for (var i = 0; i < NOT_HELD_KEYWORDS.length; i++) {
+    if (s.indexOf(NOT_HELD_KEYWORDS[i]) > -1) return false;
+  }
+  return true;
+}
+
 function norm_(v) { return String(v == null ? '' : v).replace(/\s+/g, ''); }
 
 function clean_(v, max) {
