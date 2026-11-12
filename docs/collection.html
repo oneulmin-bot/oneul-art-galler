@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>전체 작품 | (사)오늘은 아트 갤러리</title>
+<meta name="description" content="(사)오늘은 소장 작품 전체 보기 — 검색과 프로젝트별 필터">
+<meta property="og:title" content="전체 작품 | (사)오늘은 아트 갤러리">
+<meta property="og:description" content="(사)오늘은 소장 작품 전체 보기 — 검색과 프로젝트별 필터">
+<meta name="theme-color" content="#1F65B8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231F65B8'/%3E%3Ccircle cx='23' cy='11' r='5' fill='%23A8ECE9'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="collection">
+<main>
+<section class="page-hero"><div class="wrap">
+  <span class="eyebrow">● Collection</span>
+  <h1>전체 작품</h1>
+  <p>작품명·작가명·재료로 검색하거나 프로젝트별로 골라 보세요. 작품을 누르면 자세한 소개가 열립니다.</p>
+</div></section>
+<section class="block" style="padding-top:36px"><div class="wrap">
+  <div id="col-notice"></div>
+  <div class="toolbar">
+    <div class="search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="sr-only" for="q">작품 검색</label>
+      <input id="q" type="search" placeholder="작품명, 작가명, 재료로 검색" autocomplete="off">
+    </div>
+    <span class="count" id="cnt"></span>
+  </div>
+  <div class="pills" id="pills" role="group" aria-label="프로젝트 필터" style="margin-bottom:28px"></div>
+  <div class="grid" id="col-grid"></div>
+</div></section>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/sample-data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
