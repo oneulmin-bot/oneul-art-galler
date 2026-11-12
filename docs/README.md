@@ -11,7 +11,7 @@
 | `../apps-script/Code.gs` | 시트 → JSON, 방명록 저장용 Apps Script 코드 |
 
 ## 1. Apps Script 연결
-1. 작품 시트 > 확장 프로그램 > Apps Script 에 `apps-script/Code.gs` 전체를 붙여넣기
+1. script.google.com 에서 **새 프로젝트**를 만들어 `apps-script/Code.gs` 전체를 붙여넣기 (기존 프로젝트와 함수 이름이 겹침)
 2. `전체DB` 시트 맨 오른쪽(S열)에 **`전시중`** 열 추가 — 현재 전시 중인 작품 행에 전시명(예: `혼자였던 적 없는 꿈 展`) 입력, 아니면 비워두기
 3. 배포 > 새 배포 > 웹 앱 (실행: 나 / 액세스: 모든 사용자) → `/exec` 주소 복사
 4. `docs/assets/config.js` 의 `API_URL` 에 붙여넣고 커밋

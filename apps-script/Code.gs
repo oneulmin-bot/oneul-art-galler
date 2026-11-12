@@ -8,14 +8,15 @@
  *
  * 개인정보 보호: 작가 연락처, 대화청년 이름/연락처 열은 절대 반환하지 않습니다.
  *
- * 설치 방법
- *  1) 작품 시트(스프레드시트) > 확장 프로그램 > Apps Script 에 이 코드를 붙여넣기
+ * 설치 방법 (기존 '미술작품갤러리' 프로젝트와 함수 이름이 겹치므로 반드시 '새 프로젝트'에서)
+ *  1) script.google.com > 새 프로젝트 만들기 → 이 코드 전체를 붙여넣기 (기본 myFunction 은 삭제)
  *  2) '전체DB' 시트 맨 오른쪽에 '전시중' 열 추가 (현재 전시 중인 작품 행에 전시명 입력, 아니면 비워두기)
- *  3) 배포 > 새 배포 > 유형: 웹 앱 / 실행: 나 / 액세스: 모든 사용자 → 배포 후 /exec 주소 복사
+ *  3) 배포 > 새 배포 > 유형: 웹 앱 / 실행: 나 / 액세스: 모든 사용자 → 권한 승인 후 /exec 주소 복사
  *  4) docs/assets/config.js 의 API_URL 에 붙여넣기
  *  코드를 수정한 뒤에는 '배포 관리 > 새 버전'으로 다시 배포해야 반영됩니다.
  */
 
+var SHEET_ID = '1KOsZF002BuDbeHEU1c-M8fqVI5uPnZJSnm7gmVDXsik'; // 작품 리스트 스프레드시트 ID
 var ARTWORK_SHEET = '전체DB';
 var GUEST_SHEET = '방명록';
 var GUEST_HEADERS = ['작성일시', '이름', '내용', '숨김(Y)'];
@@ -59,7 +60,7 @@ function doPost(e) {
 
 /* ---------- 작품 ---------- */
 function getArtworks_() {
-  var sh = SpreadsheetApp.getActive().getSheetByName(ARTWORK_SHEET);
+  var sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(ARTWORK_SHEET);
   if (!sh) throw new Error("'" + ARTWORK_SHEET + "' 시트를 찾을 수 없습니다.");
   var values = sh.getDataRange().getValues();
 
@@ -103,7 +104,7 @@ function getArtworks_() {
 
 /* ---------- 방명록 ---------- */
 function guestSheet_() {
-  var ss = SpreadsheetApp.getActive();
+  var ss = SpreadsheetApp.openById(SHEET_ID);
   var sh = ss.getSheetByName(GUEST_SHEET);
   if (!sh) {
     sh = ss.insertSheet(GUEST_SHEET);
