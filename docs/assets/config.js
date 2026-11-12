@@ -5,7 +5,7 @@
       '현재 전시' 페이지에 함께 표시됩니다. (선택 사항)
 */
 window.ONEUL = {
-  API_URL: "https://script.google.com/macros/s/AKfycbzqbU5hCCARfmywrJq27xxCh23o4hRndZkrzKld2GPKe_tLAyKpS53BB1x_BpOTVgA6/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyjXdrhmnHUppPSRPmjPvENQhMKgMcgwXu4RB0r7_OuXBqhu93AH09mrNNOec_TwJZR8w/exec",
   ORG_NAME: "(사)오늘은",
   EXHIBITIONS: {
     "혼자였던 적 없는 꿈 展": {
