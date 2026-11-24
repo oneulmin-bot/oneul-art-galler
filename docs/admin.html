@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>관리자 | (사)오늘은 아트 갤러리</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1F65B8">
+<link rel="icon" href="assets/img/logo-symbol.png">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/components.css">
+<link rel="stylesheet" href="assets/admin.css">
+</head>
+<body data-page="admin">
+
+<div class="admin-gate" id="gate">
+  <div class="box">
+    <h1>관리자 로그인</h1>
+    <p>(사)오늘은 아트 갤러리 운영진 전용 페이지입니다.</p>
+    <label class="sr-only" for="gate-pass">비밀번호</label>
+    <input type="password" id="gate-pass" placeholder="비밀번호" autocomplete="current-password">
+    <button class="btn btn-primary" id="gate-submit" style="margin-top:14px;width:100%;justify-content:center">입장</button>
+    <div class="err" id="gate-err">비밀번호가 올바르지 않습니다.</div>
+  </div>
+</div>
+
+<div class="admin-shell" id="shell">
+  <div class="admin-top"><div class="wrap">
+    <div>
+      <h1>(사)오늘은 관리자</h1>
+      <div class="meta">이 페이지 주소와 비밀번호를 외부에 공유하지 마세요.</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="logout-btn">로그아웃</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="admin-tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-panel="guest">방명록 관리</button>
+      <button role="tab" aria-selected="false" data-panel="exhibit">현재 전시 설정</button>
+      <button role="tab" aria-selected="false" data-panel="archive">지난 전시 아카이브</button>
+    </div>
+
+    <div class="admin-panel on" id="panel-guest">
+      <div class="admin-card">
+        <h2>방명록</h2>
+        <p class="sub">숨기기는 공개 목록에서만 제외되고, 삭제는 시트에서 완전히 제거됩니다(되돌릴 수 없음).</p>
+        <table class="admin-table">
+          <thead><tr><th>작성일</th><th>이름</th><th>내용</th><th>작업</th></tr></thead>
+          <tbody id="guest-tbody"></tbody>
+        </table>
+        <div id="guest-empty" class="admin-empty" hidden>방명록이 없습니다.</div>
+        <div class="admin-status" id="guest-status"></div>
+      </div>
+    </div>
+
+    <div class="admin-panel" id="panel-exhibit">
+      <div class="admin-card">
+        <h2>전시 정보</h2>
+        <p class="sub">현재 전시의 이름·기간·장소·안내 링크를 저장합니다. 전시명을 먼저 저장한 뒤, 아래에서 전시중 작품을 선택해 주세요.</p>
+        <div class="admin-form-row">
+          <div><label for="ex-name">전시명</label><input type="text" id="ex-name" placeholder="예: 혼자였던 적 없는 꿈 展"></div>
+          <div><label for="ex-period">기간</label><input type="text" id="ex-period" placeholder="2026.9.2.(수) ~ 9.10.(목) 10:00~20:00"></div>
+          <div><label for="ex-place">장소</label><input type="text" id="ex-place" placeholder="알지비큐브 홍대"></div>
+          <div><label for="ex-link">안내 링크</label><input type="url" id="ex-link" placeholder="https://..."></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="ex-save" style="margin-top:16px">전시 정보 저장</button>
+        <div class="admin-status" id="ex-status"></div>
+      </div>
+      <div class="admin-card">
+        <h2>전시중 작품</h2>
+        <p class="sub">체크한 작품만 전시중으로 표시됩니다. 위 전시명 저장 후 이용해 주세요.</p>
+        <div class="admin-check-list" id="art-checklist"></div>
+        <button class="btn btn-primary btn-sm" id="art-save" style="margin-top:16px">전시중 작품 저장</button>
+        <div class="admin-status" id="art-status"></div>
+      </div>
+    </div>
+
+    <div class="admin-panel" id="panel-archive">
+      <div class="admin-card">
+        <h2>지난 전시 추가</h2>
+        <div class="admin-form-row">
+          <div><label for="arc-name">전시명</label><input type="text" id="arc-name"></div>
+          <div><label for="arc-period">기간</label><input type="text" id="arc-period"></div>
+          <div><label for="arc-place">장소</label><input type="text" id="arc-place"></div>
+          <div><label for="arc-link">안내 링크</label><input type="url" id="arc-link"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="arc-add" style="margin-top:16px">추가</button>
+        <div class="admin-status" id="arc-status"></div>
+      </div>
+      <div class="admin-card">
+        <h2>등록된 지난 전시</h2>
+        <p class="sub">내용을 고치려면 삭제 후 다시 추가해 주세요.</p>
+        <table class="admin-table">
+          <thead><tr><th>전시명</th><th>기간</th><th>장소</th><th>작업</th></tr></thead>
+          <tbody id="arc-tbody"></tbody>
+        </table>
+        <div id="arc-empty" class="admin-empty" hidden>등록된 지난 전시가 없습니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/sample-data.js"></script>
+<script src="assets/core.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/admin.js"></script>
+</body>
+</html>

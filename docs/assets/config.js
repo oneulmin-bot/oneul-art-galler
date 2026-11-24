@@ -1,17 +1,17 @@
 /* ===== (사)오늘은 아트 갤러리 설정 =====
    1) API_URL : Apps Script '웹 앱' 배포 주소(…/exec)를 붙여넣으세요.
-      비워두면 assets/sample-data.js 의 미리보기용 작품 5점이 표시됩니다.
-   2) EXHIBITIONS : 시트 '전시중' 열에 적는 전시명을 키로, 기간/장소/안내 링크를 적어두면
-      '현재 전시' 페이지에 함께 표시됩니다. (선택 사항)
+      비워두면 assets/sample-data.js 의 미리보기용 데이터가 표시됩니다.
+   2) 현재 전시 정보(이름/기간/장소/링크)와 지난 전시 아카이브는 더 이상 이 파일이 아니라
+      구글시트('현재전시정보', '전시이력' 시트)에서 관리합니다 — admin.html 또는 시트에서 직접 수정하세요.
 */
 window.ONEUL = {
   API_URL: "https://script.google.com/macros/s/AKfycbyjXdrhmnHUppPSRPmjPvENQhMKgMcgwXu4RB0r7_OuXBqhu93AH09mrNNOec_TwJZR8w/exec",
   ORG_NAME: "(사)오늘은",
-  EXHIBITIONS: {
-    "혼자였던 적 없는 꿈 展": {
-      period: "2026.9.2.(수) ~ 9.10.(목) 10:00~20:00",
-      place: "알지비큐브 홍대 (서울시 마포구 와우산로29라길 26)",
-      link: "https://oneultoday.notion.site/3cad68a7cf91806a8beece923c394ccb"
-    }
-  }
+  NAV: [
+    { key: "home", href: "index.html", label: "홈" },
+    { key: "now", href: "now.html", label: "전시" },
+    { key: "collection", href: "collection.html", label: "작품" },
+    { key: "program", href: "program.html", label: "지원사업" },
+    { key: "guestbook", href: "guestbook.html", label: "방명록" }
+  ]
 };
