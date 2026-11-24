@@ -28,6 +28,17 @@
     return id ? "https://drive.google.com/thumbnail?id=" + id + "&sz=w" + (w || 800) : url;
   }
 
+  function youtubeId(url) {
+    if (!url) return "";
+    var s = String(url);
+    var m = s.match(/youtu\.be\/([\w-]{6,})/) || s.match(/[?&]v=([\w-]{6,})/) || s.match(/youtube\.com\/embed\/([\w-]{6,})/) || s.match(/youtube\.com\/shorts\/([\w-]{6,})/);
+    return m ? m[1] : "";
+  }
+  function youtubeEmbed(url) {
+    var id = youtubeId(url);
+    return id ? "https://www.youtube.com/embed/" + id : "";
+  }
+
   function toast(msg) {
     var t = $("#toast");
     if (!t) { t = el("div", { id: "toast", class: "toast", role: "status" }); document.body.appendChild(t); }
@@ -48,7 +59,7 @@
     els.forEach(function (e) { io.observe(e); });
   }
 
-  window.OneulCore = { $: $, $all: $all, el: el, driveId: driveId, thumb: thumb, toast: toast,
+  window.OneulCore = { $: $, $all: $all, el: el, driveId: driveId, thumb: thumb, youtubeId: youtubeId, youtubeEmbed: youtubeEmbed, toast: toast,
     safeGet: safeGet, safeSet: safeSet, safeSessionGet: safeSessionGet, safeSessionSet: safeSessionSet, safeSessionRemove: safeSessionRemove,
     reveal: reveal };
 })();

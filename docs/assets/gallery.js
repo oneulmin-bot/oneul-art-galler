@@ -13,6 +13,26 @@
     document.body.appendChild(modal);
     return modal;
   }
+  function audioBlock(a) {
+    if (!a.audio) return null;
+    var ytUrl = C.youtubeEmbed(a.audio);
+    var kids = [el("h4", { text: "음성해설" }), el("p", { class: "audio-desc", text: "시각장애인분들을 위한 음성해설 안내 영상입니다." })];
+    if (ytUrl) {
+      kids.push(el("div", { class: "audio-embed" }, [
+        el("iframe", {
+          src: ytUrl,
+          title: (a.title || "작품") + " 음성해설 영상",
+          loading: "lazy",
+          allow: "accelerometer; encrypted-media; gyroscope; picture-in-picture",
+          allowfullscreen: "true",
+          referrerpolicy: "no-referrer"
+        })
+      ]));
+    } else {
+      kids.push(el("a", { class: "btn btn-primary btn-sm", href: a.audio, target: "_blank", rel: "noopener", text: "🎧 음성해설 듣기" }));
+    }
+    return el("div", { style: "margin-top:24px" }, kids);
+  }
   function openModal(a) {
     var m = ensureModal(); m.innerHTML = "";
     var img = thumb(a.image, 1400);
@@ -26,7 +46,7 @@
       el("h4", { text: "작품 소개" }), el("p", { text: a.intro || "작품 소개 준비 중입니다." }),
       a.bio ? el("h4", { text: "작가 소개" }) : null, a.bio ? el("p", { class: "bio", text: a.bio }) : null,
       a.topic ? el("h4", { text: "대화청년 주제" }) : null, a.topic ? el("p", { text: a.topic }) : null,
-      a.audio ? el("div", { style: "margin-top:24px" }, [el("a", { class: "btn btn-primary btn-sm", href: a.audio, target: "_blank", rel: "noopener", text: "🎧 음성해설 듣기" })]) : null
+      audioBlock(a)
     ]);
     var media = el("div", { class: "modal-img" }, [img ? el("img", { src: img, alt: (a.title || "작품") + " 이미지", referrerpolicy: "no-referrer" }) : el("div", { class: "ph", text: a.id || "" })]);
     var card = el("div", { class: "modal-card" }, [
@@ -48,7 +68,8 @@
       th.appendChild(im);
     }
     if (showBadge && a.exhibit) th.appendChild(el("span", { class: "badge", text: "전시중" }));
-    return el("button", { class: "art", type: "button", "aria-label": (a.title || "") + " 상세 보기", onclick: function () { openModal(a); } }, [
+    if (a.audio) th.appendChild(el("span", { class: "badge badge-audio", "aria-label": "음성해설 제공", text: "🎧" }));
+    return el("button", { class: "art", type: "button", "aria-label": (a.title || "") + " 상세 보기" + (a.audio ? " · 음성해설 제공" : ""), onclick: function () { openModal(a); } }, [
       th,
       el("div", { class: "info" }, [
         el("span", { class: "no", text: a.id || "" }),
