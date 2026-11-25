@@ -1,0 +1,53 @@
+/* ===== 토큰 / 리셋 / 타이포 =====
+   미니멀 단색 톤: 포인트컬러(로고색) 하나만 쓰고, 배경은 흰색/연그레이 두 단계만 사용한다.
+   구 파스텔 버전(크림/라일락/블러쉬/민트 등 멀티컬러)은 사용하지 않는다. */
+@import url("https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css");
+
+:root{
+  --point:#1F65B8;        /* 사단법인 오늘은 CI primary-blue */
+  --point-ink:#154d8f;
+  --surface:#FFFFFF;
+  --surface-alt:#F6F7F9;
+  --ink:#121417;
+  --ink-muted:#6B7280;
+  --ink-faint:#9AA1AB;
+  --line:#E7E9ED;
+  --on-point:#FFFFFF;
+  --radius:4px;
+  --maxw:1120px;
+  --font-kr:"SUIT Variable","SUIT",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-en:"Poppins","SUIT Variable",system-ui,sans-serif;
+}
+:root[data-theme="dark"]{
+  --point:#5ea0e8;--point-ink:#8ab9ee;
+  --surface:#121417;--surface-alt:#1A1D22;--ink:#F1F2F4;--ink-muted:#A2A9B3;--ink-faint:#747C87;--line:#2B2E34;--on-point:#0D1117;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --point:#5ea0e8;--point-ink:#8ab9ee;
+    --surface:#121417;--surface-alt:#1A1D22;--ink:#F1F2F4;--ink-muted:#A2A9B3;--ink-faint:#747C87;--line:#2B2E34;--on-point:#0D1117;
+  }
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font-kr);
+  background:var(--surface);color:var(--ink);line-height:1.65;letter-spacing:-.01em;
+  word-break:keep-all;overflow-wrap:break-word;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+h1,h2,h3,h4{text-wrap:balance;letter-spacing:-.03em;font-weight:800}
+:focus-visible{outline:2.5px solid var(--point);outline-offset:3px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.label{font-family:var(--font-en);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--point)}
+.tag{display:inline-block;font-family:var(--font-en);font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:4px;border:1px solid var(--line);color:var(--ink-faint)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
