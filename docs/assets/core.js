@@ -52,6 +52,19 @@
   function safeSessionSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
   function safeSessionRemove(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
 
+  function wireCarousels(root) {
+    $all(".carousel-wrap", root).forEach(function (wrap) {
+      var row = wrap.querySelector(".carousel-row");
+      if (!row) return;
+      $all(".carousel-btn", wrap).forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var dir = btn.classList.contains("prev") ? -1 : 1;
+          row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: "smooth" });
+        });
+      });
+    });
+  }
+
   function reveal() {
     var els = $all(".reveal");
     if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("in"); }); return; }
@@ -61,5 +74,5 @@
 
   window.OneulCore = { $: $, $all: $all, el: el, driveId: driveId, thumb: thumb, youtubeId: youtubeId, youtubeEmbed: youtubeEmbed, toast: toast,
     safeGet: safeGet, safeSet: safeSet, safeSessionGet: safeSessionGet, safeSessionSet: safeSessionSet, safeSessionRemove: safeSessionRemove,
-    reveal: reveal };
+    reveal: reveal, wireCarousels: wireCarousels };
 })();

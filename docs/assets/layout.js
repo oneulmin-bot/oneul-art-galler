@@ -28,7 +28,7 @@
         C.el("small", { text: "© " + new Date().getFullYear() + " " + (CFG.ORG_NAME || "") + ". All rights reserved." }),
         C.el("small", { text: "작품의 저작권은 각 작가에게 있습니다. 무단 전재 및 재배포를 금합니다." })
       ]),
-      C.el("div", { class: "foot-links" }, links.map(function (l) { return C.el("a", { href: l.href, text: l.label }); }))
+      C.el("div", { class: "foot-links" }, links.concat(CFG.FOOT_EXTRA || []).map(function (l) { return C.el("a", { href: l.href, text: l.label }); }))
     ])]);
     document.body.appendChild(footer);
   }
