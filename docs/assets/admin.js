@@ -104,6 +104,7 @@
     $("#ex-selected-name").textContent = name || "전시 정보";
     $("#ex-selected-meta").textContent = g ? [g.period, g.place, g.count + "점 참여"].filter(Boolean).join(" · ") : "";
     $("#ex-intro").value = meta.intro || "";
+    $("#ex-blog").value = meta.blogUrl || "";
     $("#ex-poster-file").value = "";
     exState.pendingFile = null;
     var prev = $("#ex-poster-preview"); prev.innerHTML = "";
@@ -117,12 +118,14 @@
   }
 
   function loadExhibit() {
-    Promise.all([apiGet("exhibitionGroups"), apiGet("exhibitionArchive"), apiGet("exhibitionInfo")]).then(function (all) {
-      var groups = all[0].items || [], archive = all[1].items || [], info = all[2].item;
-      var metaByName = {};
-      archive.forEach(function (a) { metaByName[a.name] = { poster: a.poster, intro: a.intro }; });
-      if (info) metaByName[info.name] = { poster: info.poster, intro: info.intro };
-      exState.groups = groups; exState.metaByName = metaByName; exState.currentName = info ? info.name : "";
+    apiGet("exhibitionList").then(function (res) {
+      var groups = res.items || [];
+      var metaByName = {}, currentName = "";
+      groups.forEach(function (g) {
+        metaByName[g.name] = { poster: g.poster, intro: g.intro, blogUrl: g.blogUrl };
+        if (g.isCurrent) currentName = g.name;
+      });
+      exState.groups = groups; exState.metaByName = metaByName; exState.currentName = currentName;
 
       var select = $("#ex-pick"); select.innerHTML = "";
       if (!groups.length) {
@@ -164,14 +167,15 @@
     var name = exSelected();
     if (!name) return;
     var intro = $("#ex-intro").value.trim();
+    var blogUrl = $("#ex-blog").value.trim();
     var btn = this; btn.disabled = true;
     var go = exState.pendingFile
       ? fileToBase64(exState.pendingFile).then(function (b64) {
-          return apiPost("adminSaveExhibitionMeta", { name: name, intro: intro, posterBase64: b64, posterMime: exState.pendingFile.type || "image/jpeg" });
+          return apiPost("adminSaveExhibitionMeta", { name: name, intro: intro, blogUrl: blogUrl, posterBase64: b64, posterMime: exState.pendingFile.type || "image/jpeg" });
         })
-      : apiPost("adminSaveExhibitionMeta", { name: name, intro: intro });
+      : apiPost("adminSaveExhibitionMeta", { name: name, intro: intro, blogUrl: blogUrl });
     go.then(function (j) {
-      exState.metaByName[name] = { poster: j.posterUrl || (exState.metaByName[name] || {}).poster || "", intro: intro };
+      exState.metaByName[name] = { poster: j.posterUrl || (exState.metaByName[name] || {}).poster || "", intro: intro, blogUrl: blogUrl };
       setStatus("#ex-status", true, "저장되었습니다.");
     }).catch(function (e) { setStatus("#ex-status", false, e.message); })
       .then(function () { btn.disabled = false; });

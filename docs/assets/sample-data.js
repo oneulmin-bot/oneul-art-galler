@@ -23,6 +23,6 @@ window.ONEUL_SAMPLE_ARCHIVE = [
  {name:"짧은 계절, 긴 마음 展",period:"2026.3.5.(목) ~ 3.12.(목)",place:"공간 사일삼 (서울시 종로구)",poster:"",intro:"짧게 지나간 계절 속에서도 오래 남는 마음들을 모은 전시였습니다.",count:4}
 ];
 window.ONEUL_SAMPLE_GROUPS = [
- {name:"혼자였던 적 없는 꿈 展",period:"2026.9.2.(수) ~ 9.10.(목) 10:00~20:00",place:"알지비큐브 홍대",count:2},
- {name:"짧은 계절, 긴 마음 展",period:"2026.3.5.(목) ~ 3.12.(목)",place:"공간 사일삼 (서울시 종로구)",count:4}
+ {name:"혼자였던 적 없는 꿈 展",period:"2026.9.2.(수) ~ 9.10.(목) 10:00~20:00",place:"알지비큐브 홍대",count:2,poster:"",intro:window.ONEUL_SAMPLE_EXHIBITION_INFO.intro,blogUrl:"",isCurrent:true},
+ {name:"짧은 계절, 긴 마음 展",period:"2026.3.5.(목) ~ 3.12.(목)",place:"공간 사일삼 (서울시 종로구)",count:4,poster:"",intro:"짧게 지나간 계절 속에서도 오래 남는 마음들을 모은 전시였습니다.",blogUrl:"",isCurrent:false}
 ];

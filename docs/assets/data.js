@@ -71,6 +71,33 @@
       .catch(useSample);
   }
 
+  function loadExhibitionList() {
+    return cached("exhibitionList", function () {
+      var useSample = function () { return { items: (window.ONEUL_SAMPLE_GROUPS || []), sample: true }; };
+      var url = api("exhibitionList");
+      if (!url) return Promise.resolve(useSample());
+      return fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (!j || !j.ok) throw new Error("bad"); return { items: j.items || [], sample: false }; })
+        .catch(useSample);
+    });
+  }
+
+  function loadExhibitionDetail(name) {
+    var useSample = function () {
+      var all = (window.ONEUL_SAMPLE_GROUPS || []).concat(window.ONEUL_SAMPLE_EXHIBITION_INFO ? [window.ONEUL_SAMPLE_EXHIBITION_INFO] : []);
+      var found = all.filter(function (g) { return g.name === name; })[0] || null;
+      if (found && !found.items) found = Object.assign({}, found, { items: window.ONEUL_SAMPLE || [] });
+      return { item: found, sample: true };
+    };
+    var url = api("exhibitionDetail", "&name=" + encodeURIComponent(name));
+    if (!url) return Promise.resolve(useSample());
+    return fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j || !j.ok) throw new Error("bad"); return { item: j.item || null, sample: false }; })
+      .catch(useSample);
+  }
+
   // exInfoItem(exhibitionInfo.item)의 items(현재 전시 작품들)를 기준으로, items 배열의 각 작품 객체에
   // _isCurrent / _exhibitName 을 표시해 카드/모달에서 "전시중" 뱃지를 보여줄 수 있게 한다.
   function markCurrent(items, exInfoItem) {
@@ -90,6 +117,8 @@
     loadExhibitionInfo: loadExhibitionInfo,
     loadExhibitionArchive: loadExhibitionArchive,
     loadExhibitionGroups: loadExhibitionGroups,
+    loadExhibitionList: loadExhibitionList,
+    loadExhibitionDetail: loadExhibitionDetail,
     markCurrent: markCurrent
   };
 })();
