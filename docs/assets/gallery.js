@@ -43,6 +43,7 @@
       el("div", { class: "artist", text: a.artist || "" }),
       el("div", { class: "facts" }, facts),
       a._isCurrent ? el("div", { class: "notice", text: "📍 현재 전시 중 · " + a._exhibitName }) : null,
+      a.notOwned ? el("div", { class: "notice", text: "이제 더 이상 (사)오늘은이 소장하지 않는 작품이에요." }) : null,
       el("h4", { text: "작품 소개" }), el("p", { text: a.intro || "작품 소개 준비 중입니다." }),
       a.bio ? el("h4", { text: "작가 소개" }) : null, a.bio ? el("p", { class: "bio", text: a.bio }) : null,
       a.topic ? el("h4", { text: "대화청년 주제" }) : null, a.topic ? el("p", { text: a.topic }) : null,
@@ -77,7 +78,8 @@
         el("span", { class: "no", text: a.id || "" }),
         el("h3", { text: a.title || "제목 없음" }),
         el("span", { class: "who", text: a.artist || "" }),
-        el("span", { class: "meta", text: [a.size, a.medium].filter(Boolean).join(" · ") })
+        el("span", { class: "meta", text: [a.size, a.medium].filter(Boolean).join(" · ") }),
+        a.notOwned ? el("span", { class: "tag", style: "margin-top:4px", text: "소장 종료" }) : null
       ])
     ]);
   }
