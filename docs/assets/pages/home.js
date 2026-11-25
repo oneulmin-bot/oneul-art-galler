@@ -8,14 +8,21 @@
     var frame = $("#hero-frame");
     var withImg = items.filter(function (a) { return a.image; });
     var pick = withImg[0] || items[0];
-    if (!pick) { frame.querySelector(".ph").textContent = "대표 작품 준비 중"; return; }
+    var phEl = frame.querySelector(".ph");
+    if (!pick) { phEl.textContent = "대표 작품 준비 중"; return; }
+    var caption = [pick.title, pick.artist].filter(Boolean).join(" · ");
     var src = thumb(pick.image, 900);
     if (src) {
-      var im = el("img", { src: src, alt: (pick.title || "") + " — " + (pick.artist || ""), referrerpolicy: "no-referrer" });
-      im.addEventListener("error", function () { im.remove(); });
-      frame.insertBefore(im, frame.querySelector(".ph"));
+      var im = el("img", { src: src, alt: caption, referrerpolicy: "no-referrer" });
+      im.addEventListener("error", function () {
+        im.remove();
+        frame.appendChild(el("div", { class: "ph", text: caption }));
+      });
+      phEl.remove();
+      frame.insertBefore(im, frame.firstChild);
+    } else {
+      phEl.textContent = caption;
     }
-    frame.querySelector(".ph").textContent = [pick.title, pick.artist].filter(Boolean).join(" · ");
   }
 
   function renderExBanner(info) {
@@ -59,9 +66,21 @@
 
       G.sampleNotice($("#home-notice"), artRes);
 
+      var works = items.filter(function (a) { return a.image; }).concat(items.filter(function (a) { return !a.image; }));
+      var worksRow = $("#home-works-row"); worksRow.innerHTML = "";
+      works.slice(0, 12).forEach(function (a) { worksRow.appendChild(G.artCard(a, true)); });
+
+      D.loadExhibitionArchive().then(function (ar) {
+        var archiveRow = $("#home-archive-row"); archiveRow.innerHTML = "";
+        var exItems = ar.items || [];
+        if (!exItems.length) { archiveRow.closest("section").hidden = true; return; }
+        exItems.slice(0, 10).forEach(function (ex) { archiveRow.appendChild(G.archiveCard(ex)); });
+      });
+
       D.loadGuests(3).then(function (g) { renderMsgs($("#home-msgs"), g.items); });
 
       C.reveal();
+      C.wireCarousels();
     });
   }
 

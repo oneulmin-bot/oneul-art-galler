@@ -4,19 +4,6 @@
   var C = window.OneulCore, D = window.OneulData, G = window.OneulGallery;
   var $ = C.$, $all = C.$all, el = C.el, thumb = C.thumb;
 
-  function posterBox(url, title) {
-    var box = el("div", { class: "poster" });
-    var src = thumb(url, 900);
-    if (src) {
-      var im = el("img", { src: src, alt: title + " 포스터", referrerpolicy: "no-referrer" });
-      im.addEventListener("error", function () { im.remove(); box.appendChild(el("div", { class: "ph", text: title })); });
-      box.appendChild(im);
-    } else {
-      box.appendChild(el("div", { class: "ph", text: title }));
-    }
-    return box;
-  }
-
   function initCurrent() {
     var root = $("#now-root"), head = $("#now-head");
     G.skeletons(root, 4);
@@ -34,7 +21,7 @@
       if (info.place) rows.push(el("span", {}, [el("b", { text: "장소 " }), info.place]));
       head.innerHTML = "";
       head.appendChild(el("div", { class: "ex-head" }, [
-        posterBox(info.poster, info.name),
+        G.posterBox(info.poster, info.name),
         el("div", {}, [
           el("h2", { text: info.name, style: "font-size:24px" }),
           el("div", { class: "facts", style: "margin:10px 0 0" }, rows),
@@ -61,17 +48,7 @@
       }
       root.className = "archive-grid";
       root.innerHTML = "";
-      items.forEach(function (ex) {
-        var card = el("div", { class: "archive-card" }, [
-          posterBox(ex.poster, ex.name),
-          ex.place ? el("span", { class: "place", text: ex.place }) : null,
-          el("h3", { text: ex.name }),
-          ex.intro ? el("p", { class: "desc", text: ex.intro }) : null,
-          el("div", { class: "r" }, [el("b", { text: "일시" }), ex.period || ""]),
-          el("span", { class: "count", text: ex.count + "점 참여" })
-        ]);
-        root.appendChild(card);
-      });
+      items.forEach(function (ex) { root.appendChild(G.archiveCard(ex)); });
     });
   }
 

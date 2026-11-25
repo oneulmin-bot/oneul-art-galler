@@ -11,7 +11,11 @@ window.ONEUL = {
     { key: "home", href: "index.html", label: "홈" },
     { key: "now", href: "now.html", label: "전시" },
     { key: "collection", href: "collection.html", label: "작품" },
-    { key: "program", href: "program.html", label: "지원사업" },
+    { key: "program", href: "program.html", label: "프로젝트 소개" },
     { key: "guestbook", href: "guestbook.html", label: "방명록" }
+  ],
+  // 상단 메뉴에는 넣지 않고 푸터에만 작게 노출하는 링크
+  FOOT_EXTRA: [
+    { href: "admin.html", label: "관리자" }
   ]
 };

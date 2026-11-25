@@ -61,11 +61,13 @@
   /* ---------- card / row ---------- */
   function artCard(a, showBadge) {
     var src = thumb(a.image, 700);
-    var th = el("div", { class: "thumb" }, [el("div", { class: "ph", text: (a.title || "").slice(0, 1) })]);
+    var th = el("div", { class: "thumb" });
     if (src) {
       var im = el("img", { src: src, alt: (a.title || "작품") + " — " + (a.artist || ""), loading: "lazy", referrerpolicy: "no-referrer" });
-      im.addEventListener("error", function () { im.remove(); });
+      im.addEventListener("error", function () { im.remove(); th.appendChild(el("div", { class: "ph", text: (a.title || "").slice(0, 1) })); });
       th.appendChild(im);
+    } else {
+      th.appendChild(el("div", { class: "ph", text: (a.title || "").slice(0, 1) }));
     }
     if (showBadge && a._isCurrent) th.appendChild(el("span", { class: "badge", text: "전시중" }));
     if (a.audio) th.appendChild(el("span", { class: "badge badge-audio", "aria-label": "음성해설 제공", text: "🎧" }));
@@ -135,6 +137,30 @@
     return order.map(function (k) { return { key: k, label: k, items: map[k] }; });
   }
 
+  /* ---------- 전시 포스터/아카이브 카드 (now.js, home.js 공용) ---------- */
+  function posterBox(url, title) {
+    var box = el("div", { class: "poster" });
+    var src = thumb(url, 900);
+    if (src) {
+      var im = el("img", { src: src, alt: title + " 포스터", referrerpolicy: "no-referrer" });
+      im.addEventListener("error", function () { im.remove(); box.appendChild(el("div", { class: "ph", text: title })); });
+      box.appendChild(im);
+    } else {
+      box.appendChild(el("div", { class: "ph", text: title }));
+    }
+    return box;
+  }
+  function archiveCard(ex) {
+    return el("div", { class: "archive-card" }, [
+      posterBox(ex.poster, ex.name),
+      ex.place ? el("span", { class: "place", text: ex.place }) : null,
+      el("h3", { text: ex.name }),
+      ex.intro ? el("p", { class: "desc", text: ex.intro }) : null,
+      el("div", { class: "r" }, [el("b", { text: "일시" }), ex.period || ""]),
+      el("span", { class: "count", text: ex.count + "점 참여" })
+    ]);
+  }
+
   /* ---------- states ---------- */
   function skeletons(node, n) {
     node.className = "grid";
@@ -158,6 +184,7 @@
     openModal: openModal, artCard: artCard, nRow: nRow,
     fillGrid: fillGrid, fillList: fillList, fillGroupedGrid: fillGroupedGrid,
     groupByArtist: groupByArtist, groupByYearProject: groupByYearProject,
-    skeletons: skeletons, sampleNotice: sampleNotice, empty: empty
+    skeletons: skeletons, sampleNotice: sampleNotice, empty: empty,
+    posterBox: posterBox, archiveCard: archiveCard
   };
 })();
