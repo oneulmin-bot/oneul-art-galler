@@ -53,3 +53,4 @@
 .admin-status.err{color:#c23b3b}
 
 .admin-empty{color:var(--ink-faint);font-size:13.5px;padding:24px;text-align:center}
+.tag.current{color:var(--point);border-color:var(--point)}

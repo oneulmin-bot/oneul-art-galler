@@ -5,7 +5,7 @@
       구글시트('현재전시정보', '전시이력' 시트)에서 관리합니다 — admin.html 또는 시트에서 직접 수정하세요.
 */
 window.ONEUL = {
-  API_URL: "https://script.google.com/macros/s/AKfycbyjXdrhmnHUppPSRPmjPvENQhMKgMcgwXu4RB0r7_OuXBqhu93AH09mrNNOec_TwJZR8w/exec",
+  API_URL: "https://script.google.com/macros/s/AKfycbyN56Pr6SQol4uEvCxl83DFww9tPyGB7cKF7mKjzsR1yRUmLKP0Goym4rvGUH0EPpQLAg/exec",
   ORG_NAME: "(사)오늘은",
   NAV: [
     { key: "home", href: "index.html", label: "홈" },

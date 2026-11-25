@@ -2,39 +2,48 @@
 (function () {
   "use strict";
   var C = window.OneulCore, D = window.OneulData, G = window.OneulGallery;
-  var $ = C.$, $all = C.$all, el = C.el;
-  var CFG = window.ONEUL || {};
+  var $ = C.$, $all = C.$all, el = C.el, thumb = C.thumb;
+
+  function posterBox(url, title) {
+    var box = el("div", { class: "poster" });
+    var src = thumb(url, 900);
+    if (src) {
+      var im = el("img", { src: src, alt: title + " 포스터", referrerpolicy: "no-referrer" });
+      im.addEventListener("error", function () { im.remove(); box.appendChild(el("div", { class: "ph", text: title })); });
+      box.appendChild(im);
+    } else {
+      box.appendChild(el("div", { class: "ph", text: title }));
+    }
+    return box;
+  }
 
   function initCurrent() {
     var root = $("#now-root"), head = $("#now-head");
     G.skeletons(root, 4);
-    Promise.all([D.loadArtworks(), D.loadExhibitionInfo()]).then(function (res) {
-      var artRes = res[0], exInfo = res[1];
-      var cur = D.onView(artRes.items);
-      G.sampleNotice($("#now-notice"), artRes);
-      if (!cur.length) {
-        G.empty(root, "지금은 진행 중인 전시가 없어요", "전시가 시작되면 시트의 '전시중' 열에 전시명이 적힌 작품만 이 페이지에 모아 보여드립니다.", "collection.html", "소장 작품 둘러보기");
+    D.loadExhibitionInfo().then(function (res) {
+      G.sampleNotice($("#now-notice"), res);
+      var info = res.item;
+      if (!info || !info.items || !info.items.length) {
+        head.innerHTML = "";
+        G.empty(root, "지금은 진행 중인 전시가 없어요", "전시가 시작되면 관리자 페이지에서 지정한 전시의 작품이 이곳에 모여 보여집니다.", "collection.html", "소장 작품 둘러보기");
         $("#now-count").textContent = "";
         return;
       }
-      var groups = {}, order = [];
-      cur.forEach(function (a) { var k = a.exhibit; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(a); });
+      var rows = [];
+      if (info.period) rows.push(el("span", {}, [el("b", { text: "일시 " }), info.period]));
+      if (info.place) rows.push(el("span", {}, [el("b", { text: "장소 " }), info.place]));
+      head.innerHTML = "";
+      head.appendChild(el("div", { class: "ex-head" }, [
+        posterBox(info.poster, info.name),
+        el("div", {}, [
+          el("h2", { text: info.name, style: "font-size:24px" }),
+          el("div", { class: "facts", style: "margin:10px 0 0" }, rows),
+          info.intro ? el("p", { class: "intro", text: info.intro }) : null
+        ])
+      ]));
       root.innerHTML = "";
-      order.forEach(function (name) {
-        var sec = el("div", { class: "ex-group" });
-        sec.appendChild(el("h2", {}, [name, el("span", { class: "chip", text: groups[name].length + "점" })]));
-        var g = el("div", {}); G.fillGrid(g, groups[name], false); sec.appendChild(g);
-        root.appendChild(sec);
-      });
-      if (exInfo.item) {
-        var info = exInfo.item;
-        var rows = [el("div", { class: "t", text: info.name || order[0] || "" })];
-        if (info.period) rows.push(el("div", { class: "r" }, [el("b", { text: "일시" }), info.period]));
-        if (info.place) rows.push(el("div", { class: "r" }, [el("b", { text: "장소" }), info.place]));
-        if (info.link) rows.push(el("div", { class: "r" }, [el("a", { href: info.link, target: "_blank", rel: "noopener", style: "color:var(--point);font-weight:700", text: "전시 안내 페이지 ↗" })]));
-        head.innerHTML = ""; head.appendChild(el("div", { class: "ex-card" }, rows));
-      }
-      $("#now-count").textContent = cur.length + "점의 작품이 전시되고 있어요";
+      G.fillGrid(root, info.items, false);
+      $("#now-count").textContent = info.items.length + "점의 작품이 전시되고 있어요";
     });
   }
 
@@ -53,13 +62,13 @@
       root.className = "archive-grid";
       root.innerHTML = "";
       items.forEach(function (ex) {
-        var rows = [];
-        if (ex.period) rows.push(el("div", { class: "r" }, [el("b", { text: "일시" }), ex.period]));
-        if (ex.place) rows.push(el("div", { class: "r" }, [el("b", { text: "장소" }), ex.place]));
         var card = el("div", { class: "archive-card" }, [
-          el("h3", { text: ex.name || "" }),
-          ...rows,
-          ex.link ? el("a", { class: "link-more", href: ex.link, target: "_blank", rel: "noopener", text: "안내 페이지 보기 →" }) : null
+          posterBox(ex.poster, ex.name),
+          ex.place ? el("span", { class: "place", text: ex.place }) : null,
+          el("h3", { text: ex.name }),
+          ex.intro ? el("p", { class: "desc", text: ex.intro }) : null,
+          el("div", { class: "r" }, [el("b", { text: "일시" }), ex.period || ""]),
+          el("span", { class: "count", text: ex.count + "점 참여" })
         ]);
         root.appendChild(card);
       });

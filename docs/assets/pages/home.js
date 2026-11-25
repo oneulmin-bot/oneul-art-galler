@@ -18,21 +18,17 @@
     frame.querySelector(".ph").textContent = [pick.title, pick.artist].filter(Boolean).join(" · ");
   }
 
-  function renderExBanner(items, info) {
-    var cur = D.onView(items);
+  function renderExBanner(info) {
     var sec = $("#exbanner");
-    if (!cur.length) { sec.hidden = true; return; }
+    if (!info || !info.items || !info.items.length) { sec.hidden = true; return; }
     sec.hidden = false;
-    var names = {}; cur.forEach(function (a) { names[a.exhibit] = 1; });
-    var title = Object.keys(names).join(" · ");
-    $("#ex-title").textContent = title;
+    $("#ex-title").textContent = info.name;
     var facts = $("#ex-facts"); facts.innerHTML = "";
-    if (info) {
-      if (info.period) facts.appendChild(el("span", {}, [el("b", { text: "일시 " }), info.period]));
-      if (info.place) facts.appendChild(el("span", {}, [el("b", { text: "장소 " }), info.place]));
-    }
+    if (info.period) facts.appendChild(el("span", {}, [el("b", { text: "일시 " }), info.period]));
+    if (info.place) facts.appendChild(el("span", {}, [el("b", { text: "장소 " }), info.place]));
     var thumbs = $("#ex-thumbs"); thumbs.innerHTML = "";
-    cur.slice(0, 3).forEach(function (a) {
+    var pics = info.poster ? [{ image: info.poster, title: info.name }].concat(info.items) : info.items;
+    pics.slice(0, 3).forEach(function (a) {
       var box = el("div", { class: "th" });
       var src = thumb(a.image, 200);
       if (src) {
@@ -51,14 +47,15 @@
       var items = artRes.items;
 
       renderHeroFrame(items);
-      renderExBanner(items, exInfo.item);
+      D.markCurrent(items, exInfo.item);
+      renderExBanner(exInfo.item);
 
       var artists = {}, projects = {};
       items.forEach(function (a) { if (a.artist) artists[a.artist] = 1; if (a.project) projects[a.project] = 1; });
       s1.textContent = items.length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
 
       var pick = items.filter(function (a) { return a.image; }).slice(0, 4).concat(items.filter(function (a) { return !a.image; })).slice(0, 4);
-      G.fillGrid($("#home-pick"), pick, false);
+      G.fillGrid($("#home-pick"), pick, true);
 
       G.sampleNotice($("#home-notice"), artRes);
 

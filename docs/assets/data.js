@@ -61,7 +61,27 @@
     });
   }
 
-  function onView(items) { return items.filter(function (a) { return a.exhibit && String(a.exhibit).trim(); }); }
+  function loadExhibitionGroups() {
+    var useSample = function () { return { items: (window.ONEUL_SAMPLE_GROUPS || []), sample: true }; };
+    var url = api("exhibitionGroups");
+    if (!url) return Promise.resolve(useSample());
+    return fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j || !j.ok) throw new Error("bad"); return { items: j.items || [], sample: false }; })
+      .catch(useSample);
+  }
+
+  // exInfoItem(exhibitionInfo.item)의 items(현재 전시 작품들)를 기준으로, items 배열의 각 작품 객체에
+  // _isCurrent / _exhibitName 을 표시해 카드/모달에서 "전시중" 뱃지를 보여줄 수 있게 한다.
+  function markCurrent(items, exInfoItem) {
+    if (!exInfoItem || !exInfoItem.items) return items;
+    var ids = {};
+    exInfoItem.items.forEach(function (a) { ids[a.id] = true; });
+    items.forEach(function (a) {
+      if (ids[a.id]) { a._isCurrent = true; a._exhibitName = exInfoItem.name; }
+    });
+    return items;
+  }
 
   window.OneulData = {
     api: api,
@@ -69,6 +89,7 @@
     loadGuests: loadGuests,
     loadExhibitionInfo: loadExhibitionInfo,
     loadExhibitionArchive: loadExhibitionArchive,
-    onView: onView
+    loadExhibitionGroups: loadExhibitionGroups,
+    markCurrent: markCurrent
   };
 })();

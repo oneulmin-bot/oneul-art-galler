@@ -42,7 +42,7 @@
       el("h2", { text: a.title || "제목 없음" }),
       el("div", { class: "artist", text: a.artist || "" }),
       el("div", { class: "facts" }, facts),
-      a.exhibit ? el("div", { class: "notice", text: "📍 현재 전시 중 · " + a.exhibit }) : null,
+      a._isCurrent ? el("div", { class: "notice", text: "📍 현재 전시 중 · " + a._exhibitName }) : null,
       el("h4", { text: "작품 소개" }), el("p", { text: a.intro || "작품 소개 준비 중입니다." }),
       a.bio ? el("h4", { text: "작가 소개" }) : null, a.bio ? el("p", { class: "bio", text: a.bio }) : null,
       a.topic ? el("h4", { text: "대화청년 주제" }) : null, a.topic ? el("p", { text: a.topic }) : null,
@@ -67,7 +67,7 @@
       im.addEventListener("error", function () { im.remove(); });
       th.appendChild(im);
     }
-    if (showBadge && a.exhibit) th.appendChild(el("span", { class: "badge", text: "전시중" }));
+    if (showBadge && a._isCurrent) th.appendChild(el("span", { class: "badge", text: "전시중" }));
     if (a.audio) th.appendChild(el("span", { class: "badge badge-audio", "aria-label": "음성해설 제공", text: "🎧" }));
     return el("button", { class: "art", type: "button", "aria-label": (a.title || "") + " 상세 보기" + (a.audio ? " · 음성해설 제공" : ""), onclick: function () { openModal(a); } }, [
       th,
