@@ -36,8 +36,7 @@
   <div class="wrap">
     <div class="admin-tabs" role="tablist">
       <button role="tab" aria-selected="true" data-panel="guest">방명록 관리</button>
-      <button role="tab" aria-selected="false" data-panel="exhibit">현재 전시 설정</button>
-      <button role="tab" aria-selected="false" data-panel="archive">지난 전시 아카이브</button>
+      <button role="tab" aria-selected="false" data-panel="exhibit">전시 관리</button>
     </div>
 
     <div class="admin-panel on" id="panel-guest">
@@ -55,46 +54,30 @@
 
     <div class="admin-panel" id="panel-exhibit">
       <div class="admin-card">
-        <h2>전시 정보</h2>
-        <p class="sub">현재 전시의 이름·기간·장소·안내 링크를 저장합니다. 전시명을 먼저 저장한 뒤, 아래에서 전시중 작품을 선택해 주세요.</p>
-        <div class="admin-form-row">
-          <div><label for="ex-name">전시명</label><input type="text" id="ex-name" placeholder="예: 혼자였던 적 없는 꿈 展"></div>
-          <div><label for="ex-period">기간</label><input type="text" id="ex-period" placeholder="2026.9.2.(수) ~ 9.10.(목) 10:00~20:00"></div>
-          <div><label for="ex-place">장소</label><input type="text" id="ex-place" placeholder="알지비큐브 홍대"></div>
-          <div><label for="ex-link">안내 링크</label><input type="url" id="ex-link" placeholder="https://..."></div>
+        <h2>전시 선택</h2>
+        <p class="sub">전시 목록은 '전시리스트DB' 시트를 기준으로 자동으로 불러옵니다(작품번호로 연결된 전시만 나와요). 새 전시는 운영진이 그 시트에 작품을 먼저 등록해 주세요.</p>
+        <label for="ex-pick">전시</label>
+        <select id="ex-pick"></select>
+        <div id="ex-current-tag" class="tag current" style="margin-top:10px;display:none">현재 전시로 지정됨</div>
+      </div>
+      <div class="admin-card">
+        <h2 id="ex-selected-name">전시 정보</h2>
+        <p class="sub" id="ex-selected-meta"></p>
+        <label>포스터</label>
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div id="ex-poster-preview" style="width:140px;aspect-ratio:3/4;background:var(--surface-alt);display:grid;place-items:center;overflow:hidden;font-size:12px;color:var(--ink-faint);text-align:center;padding:8px">포스터 없음</div>
+          <div style="flex:1;min-width:220px">
+            <input type="file" id="ex-poster-file" accept="image/*">
+            <p class="sub" style="margin-top:8px">이미지 파일을 선택하면 저장 시 자동으로 업로드됩니다. 선택하지 않으면 기존 포스터가 유지돼요.</p>
+          </div>
         </div>
-        <button class="btn btn-primary btn-sm" id="ex-save" style="margin-top:16px">전시 정보 저장</button>
+        <label for="ex-intro">서문</label>
+        <textarea id="ex-intro" placeholder="전시 소개/서문을 적어주세요" style="min-height:160px"></textarea>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-primary btn-sm" id="ex-meta-save">포스터·서문 저장</button>
+          <button class="btn btn-ghost btn-sm" id="ex-set-current">이 전시를 현재 전시로 지정</button>
+        </div>
         <div class="admin-status" id="ex-status"></div>
-      </div>
-      <div class="admin-card">
-        <h2>전시중 작품</h2>
-        <p class="sub">체크한 작품만 전시중으로 표시됩니다. 위 전시명 저장 후 이용해 주세요.</p>
-        <div class="admin-check-list" id="art-checklist"></div>
-        <button class="btn btn-primary btn-sm" id="art-save" style="margin-top:16px">전시중 작품 저장</button>
-        <div class="admin-status" id="art-status"></div>
-      </div>
-    </div>
-
-    <div class="admin-panel" id="panel-archive">
-      <div class="admin-card">
-        <h2>지난 전시 추가</h2>
-        <div class="admin-form-row">
-          <div><label for="arc-name">전시명</label><input type="text" id="arc-name"></div>
-          <div><label for="arc-period">기간</label><input type="text" id="arc-period"></div>
-          <div><label for="arc-place">장소</label><input type="text" id="arc-place"></div>
-          <div><label for="arc-link">안내 링크</label><input type="url" id="arc-link"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" id="arc-add" style="margin-top:16px">추가</button>
-        <div class="admin-status" id="arc-status"></div>
-      </div>
-      <div class="admin-card">
-        <h2>등록된 지난 전시</h2>
-        <p class="sub">내용을 고치려면 삭제 후 다시 추가해 주세요.</p>
-        <table class="admin-table">
-          <thead><tr><th>전시명</th><th>기간</th><th>장소</th><th>작업</th></tr></thead>
-          <tbody id="arc-tbody"></tbody>
-        </table>
-        <div id="arc-empty" class="admin-empty" hidden>등록된 지난 전시가 없습니다.</div>
       </div>
     </div>
   </div>

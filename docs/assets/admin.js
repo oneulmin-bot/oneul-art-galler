@@ -92,79 +92,100 @@
     }).catch(function (e) { setStatus("#guest-status", false, e.message); });
   }
 
-  /* ---------- exhibit settings ---------- */
+  /* ---------- exhibit management ---------- */
+  var exState = { groups: [], metaByName: {}, currentName: "", pendingFile: null };
+
+  function exSelected() { return $("#ex-pick").value; }
+
+  function renderExSelection() {
+    var name = exSelected();
+    var g = exState.groups.filter(function (x) { return x.name === name; })[0];
+    var meta = exState.metaByName[name] || {};
+    $("#ex-selected-name").textContent = name || "전시 정보";
+    $("#ex-selected-meta").textContent = g ? [g.period, g.place, g.count + "점 참여"].filter(Boolean).join(" · ") : "";
+    $("#ex-intro").value = meta.intro || "";
+    $("#ex-poster-file").value = "";
+    exState.pendingFile = null;
+    var prev = $("#ex-poster-preview"); prev.innerHTML = "";
+    var src = thumb(meta.poster, 300);
+    if (src) {
+      var im = el("img", { src: src, alt: "", style: "width:100%;height:100%;object-fit:cover" });
+      im.addEventListener("error", function () { im.remove(); prev.textContent = "포스터 없음"; });
+      prev.appendChild(im);
+    } else { prev.textContent = "포스터 없음"; }
+    $("#ex-current-tag").style.display = (name && name === exState.currentName) ? "inline-block" : "none";
+  }
+
   function loadExhibit() {
-    D.loadExhibitionInfo().then(function (res) {
-      var info = res.item || {};
-      $("#ex-name").value = info.name || "";
-      $("#ex-period").value = info.period || "";
-      $("#ex-place").value = info.place || "";
-      $("#ex-link").value = info.link || "";
-    });
-    D.loadArtworks().then(function (res) {
-      var list = $("#art-checklist"); list.innerHTML = "";
-      res.items.forEach(function (a) {
-        var row = el("label", { class: "admin-check-row" });
-        var cb = el("input", { type: "checkbox" }); cb.checked = !!(a.exhibit && a.exhibit.trim());
-        cb.dataset.id = a.id;
-        var th = el("div", { class: "th" }); var src = thumb(a.image, 120);
-        if (src) { var im = el("img", { src: src, alt: "" }); im.addEventListener("error", function () { im.remove(); th.textContent = (a.title || "").slice(0, 1); }); th.appendChild(im); }
-        else th.textContent = (a.title || "").slice(0, 1);
-        row.appendChild(cb); row.appendChild(th);
-        row.appendChild(el("div", { class: "nm" }, [a.title || "제목 없음", el("span", { text: a.artist || "" })]));
-        row.appendChild(el("span", { class: "meta", text: a.id || "" }));
-        list.appendChild(row);
+    Promise.all([apiGet("exhibitionGroups"), apiGet("exhibitionArchive"), apiGet("exhibitionInfo")]).then(function (all) {
+      var groups = all[0].items || [], archive = all[1].items || [], info = all[2].item;
+      var metaByName = {};
+      archive.forEach(function (a) { metaByName[a.name] = { poster: a.poster, intro: a.intro }; });
+      if (info) metaByName[info.name] = { poster: info.poster, intro: info.intro };
+      exState.groups = groups; exState.metaByName = metaByName; exState.currentName = info ? info.name : "";
+
+      var select = $("#ex-pick"); select.innerHTML = "";
+      if (!groups.length) {
+        select.appendChild(el("option", { text: "전시리스트DB에 등록된 전시가 없습니다" }));
+        $("#ex-selected-name").textContent = "전시 정보";
+        $("#ex-selected-meta").textContent = "";
+        return;
+      }
+      groups.forEach(function (g) {
+        select.appendChild(el("option", { value: g.name, text: g.name + " (" + g.count + "점)" }));
       });
-    });
+      select.value = exState.currentName && groups.some(function (g) { return g.name === exState.currentName; }) ? exState.currentName : groups[0].name;
+      renderExSelection();
+    }).catch(function (e) { setStatus("#ex-status", false, e.message); });
   }
-  $("#ex-save").addEventListener("click", function () {
-    apiPost("adminSetExhibitionInfo", {
-      name: $("#ex-name").value.trim(), period: $("#ex-period").value.trim(),
-      place: $("#ex-place").value.trim(), link: $("#ex-link").value.trim()
-    }).then(function () { setStatus("#ex-status", true, "전시 정보가 저장되었습니다."); })
-      .catch(function (e) { setStatus("#ex-status", false, e.message); });
-  });
-  $("#art-save").addEventListener("click", function () {
-    var ids = $all("#art-checklist input[type=checkbox]:checked").map(function (c) { return c.dataset.id; });
-    var exhibitName = $("#ex-name").value.trim();
-    if (!exhibitName && ids.length) { setStatus("#art-status", false, "먼저 전시명을 입력하고 저장해 주세요."); return; }
-    apiPost("adminSetArtworkExhibit", { exhibitName: exhibitName, ids: ids }).then(function () {
-      setStatus("#art-status", true, "전시중 작품이 저장되었습니다.");
-    }).catch(function (e) { setStatus("#art-status", false, e.message); });
+  $("#ex-pick").addEventListener("change", renderExSelection);
+  $("#ex-poster-file").addEventListener("change", function () {
+    var f = this.files[0];
+    if (!f) return;
+    exState.pendingFile = f;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var prev = $("#ex-poster-preview"); prev.innerHTML = "";
+      prev.appendChild(el("img", { src: reader.result, alt: "", style: "width:100%;height:100%;object-fit:cover" }));
+    };
+    reader.readAsDataURL(f);
   });
 
-  /* ---------- archive ---------- */
-  function loadArchive() {
-    apiGet("exhibitionArchive").then(function (j) {
-      var items = j.items || [];
-      var tbody = $("#arc-tbody"); tbody.innerHTML = "";
-      $("#arc-empty").hidden = !!items.length;
-      items.forEach(function (ex) {
-        tbody.appendChild(el("tr", {}, [
-          el("td", { text: ex.name || "" }), el("td", { text: ex.period || "" }), el("td", { text: ex.place || "" }),
-          el("td", {}, [el("div", { class: "admin-actions" }, [
-            el("button", { class: "danger", text: "삭제", onclick: function () { deleteArchive(ex.row); } })
-          ])])
-        ]));
-      });
+  function fileToBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(String(reader.result).split(",")[1] || ""); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
   }
-  $("#arc-add").addEventListener("click", function () {
-    var name = $("#arc-name").value.trim();
-    if (!name) { setStatus("#arc-status", false, "전시명을 입력해 주세요."); return; }
-    apiPost("adminAddExhibitionArchive", {
-      name: name, period: $("#arc-period").value.trim(), place: $("#arc-place").value.trim(), link: $("#arc-link").value.trim()
-    }).then(function () {
-      setStatus("#arc-status", true, "추가되었습니다.");
-      ["arc-name", "arc-period", "arc-place", "arc-link"].forEach(function (id) { $("#" + id).value = ""; });
-      loadArchive();
-    }).catch(function (e) { setStatus("#arc-status", false, e.message); });
-  });
-  function deleteArchive(row) {
-    if (!confirm("이 지난 전시 기록을 삭제할까요?")) return;
-    apiPost("adminDeleteExhibitionArchive", { row: row }).then(loadArchive)
-      .catch(function (e) { setStatus("#arc-status", false, e.message); });
-  }
 
-  function loadAll() { loadGuestAdmin(); loadExhibit(); loadArchive(); }
+  $("#ex-meta-save").addEventListener("click", function () {
+    var name = exSelected();
+    if (!name) return;
+    var intro = $("#ex-intro").value.trim();
+    var btn = this; btn.disabled = true;
+    var go = exState.pendingFile
+      ? fileToBase64(exState.pendingFile).then(function (b64) {
+          return apiPost("adminSaveExhibitionMeta", { name: name, intro: intro, posterBase64: b64, posterMime: exState.pendingFile.type || "image/jpeg" });
+        })
+      : apiPost("adminSaveExhibitionMeta", { name: name, intro: intro });
+    go.then(function (j) {
+      exState.metaByName[name] = { poster: j.posterUrl || (exState.metaByName[name] || {}).poster || "", intro: intro };
+      setStatus("#ex-status", true, "저장되었습니다.");
+    }).catch(function (e) { setStatus("#ex-status", false, e.message); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  $("#ex-set-current").addEventListener("click", function () {
+    var name = exSelected();
+    if (!name) return;
+    apiPost("adminSetCurrentExhibition", { name: name }).then(function () {
+      exState.currentName = name;
+      renderExSelection();
+      setStatus("#ex-status", true, "'" + name + "'을(를) 현재 전시로 지정했습니다.");
+    }).catch(function (e) { setStatus("#ex-status", false, e.message); });
+  });
+
+  function loadAll() { loadGuestAdmin(); loadExhibit(); }
 })();

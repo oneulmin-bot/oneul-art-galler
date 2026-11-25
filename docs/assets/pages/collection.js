@@ -47,9 +47,11 @@
     });
   }
 
-  D.loadArtworks().then(function (res) {
+  Promise.all([D.loadArtworks(), D.loadExhibitionInfo()]).then(function (all) {
+    var res = all[0], exInfo = all[1];
     G.sampleNotice($("#col-notice"), res);
     state.items = res.items;
+    D.markCurrent(state.items, exInfo.item);
     var projects = ["전체"];
     state.items.forEach(function (a) { if (a.project && projects.indexOf(a.project) < 0) projects.push(a.project); });
     pills.innerHTML = "";
