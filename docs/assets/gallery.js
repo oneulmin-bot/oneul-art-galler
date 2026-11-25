@@ -153,8 +153,10 @@
     return box;
   }
   function archiveCard(ex) {
-    return el("div", { class: "archive-card" }, [
-      posterBox(ex.poster, ex.name),
+    var poster = posterBox(ex.poster, ex.name);
+    if (ex.isCurrent) poster.appendChild(el("span", { class: "badge", text: "진행중" }));
+    return el("a", { class: "archive-card", href: "exhibit.html?name=" + encodeURIComponent(ex.name) }, [
+      poster,
       ex.place ? el("span", { class: "place", text: ex.place }) : null,
       el("h3", { text: ex.name }),
       ex.intro ? el("p", { class: "desc", text: ex.intro }) : null,

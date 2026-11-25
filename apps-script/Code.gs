@@ -7,6 +7,8 @@
  *  - action=exhibitionInfo    : 현재 전시로 지정된 전시의 이름/기간/장소/포스터/서문/참여 작품 목록 JSON 반환
  *  - action=exhibitionArchive : '전시리스트DB' 기준 지난 전시 목록(현재 전시 제외) JSON 반환
  *  - action=exhibitionGroups  : '전시리스트DB' 기준 전체 전시 목록(현재 포함, 이름/기간/장소/작품수만) — 관리자 페이지 드롭다운용
+ *  - action=exhibitionList    : 전체 전시 목록(현재 포함, isCurrent 표시, 포스터/서문/블로그링크 포함) — 전시 페이지 단일 목록용
+ *  - action=exhibitionDetail&name=... : 전시 하나의 전체 상세(포스터/서문/블로그링크/참여 작품 전체 필드) — 전시 상세 페이지용
  *
  * 공개 POST 액션 (비밀번호 불필요)
  *  - {action:"guestbook", name, message} : '방명록' 시트에 한 줄 추가
@@ -17,7 +19,7 @@
  *  - POST adminHideGuest        {row, hide}             : 방명록 숨김/숨김해제
  *  - POST adminDeleteGuest      {row}                   : 방명록 행 삭제
  *  - POST adminSetCurrentExhibition {name}              : '현재전시' 포인터 저장
- *  - POST adminSaveExhibitionMeta   {name, intro, posterBase64?, posterMime?} : 전시 포스터/서문 저장(업서트)
+ *  - POST adminSaveExhibitionMeta   {name, intro, blogUrl?, posterBase64?, posterMime?} : 전시 포스터/서문/블로그링크 저장(업서트)
  *
  * 개인정보 보호: 작가 연락처, 대화청년 이름/연락처 열은 절대 반환하지 않습니다.
  * 소장 종료 표시: '작품리스트' P열(16번째 열)에 '반환' 또는 '폐기'라고 적으면 그 작품은 더 이상 소장하지 않는 작품으로 표시됩니다.
@@ -38,8 +40,8 @@ var ARTWORK_SHEET = '작품리스트';
 var GUEST_SHEET = '방명록';
 var GUEST_HEADERS = ['작성일시', '이름', '내용', '숨김(Y)'];
 var EXLIST_SHEET = '전시리스트DB';   // 기존 운영 시트, 읽기 전용(전시명↔작품번호 연결 기록)
-var EXMETA_SHEET = '전시설정';       // 신규: 전시 1개당 1행, 포스터/서문
-var EXMETA_HEADERS = ['전시명', '포스터URL', '서문'];
+var EXMETA_SHEET = '전시설정';       // 신규: 전시 1개당 1행, 포스터/서문/블로그링크
+var EXMETA_HEADERS = ['전시명', '포스터URL', '서문', '블로그링크'];
 var CURRENT_SHEET = '현재전시';      // 신규: 전시명 1개 값만 보관
 var CURRENT_HEADERS = ['전시명'];
 
@@ -51,6 +53,12 @@ function doGet(e) {
     if (action === 'exhibitionInfo') return json_({ ok: true, item: getExhibitionInfo_() });
     if (action === 'exhibitionArchive') return json_({ ok: true, items: getExhibitionArchive_() });
     if (action === 'exhibitionGroups') return json_({ ok: true, items: getExhibitionGroups_().map(function (g) { return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length }; }) });
+    if (action === 'exhibitionList') return json_({ ok: true, items: getExhibitionList_() });
+    if (action === 'exhibitionDetail') {
+      var item = getExhibitionFull_(e.parameter.name || '');
+      if (!item) return json_({ ok: false, error: 'not found' });
+      return json_({ ok: true, item: item });
+    }
     if (action === 'adminPing') {
       if (!checkPass_(e.parameter.pass)) return json_({ ok: false, error: 'bad pass' });
       return json_({ ok: true });
@@ -108,7 +116,7 @@ function doPost(e) {
       if (body.posterBase64) {
         posterUrl = uploadPosterImage_(body.posterBase64, body.posterMime || 'image/jpeg');
       }
-      saveExhibitionMeta_(name2, clean_(body.intro, 4000), posterUrl);
+      saveExhibitionMeta_(name2, clean_(body.intro, 4000), posterUrl, clean_(body.blogUrl, 300));
       return json_({ ok: true, posterUrl: posterUrl || undefined });
     }
 
@@ -223,19 +231,20 @@ function getExhibitionMetaMap_() {
     var row = values[r];
     var name = String(row[0] || '').trim();
     if (!name) continue;
-    map[name] = { row: r + 1, poster: String(row[1] || ''), intro: String(row[2] || '') };
+    map[name] = { row: r + 1, poster: String(row[1] || ''), intro: String(row[2] || ''), blogUrl: String(row[3] || '') };
   }
   return map;
 }
-function saveExhibitionMeta_(name, intro, posterUrlOrNull) {
+function saveExhibitionMeta_(name, intro, posterUrlOrNull, blogUrl) {
   var sh = exMetaSheet_();
   var map = getExhibitionMetaMap_();
   var existing = map[name];
   if (existing) {
     sh.getRange(existing.row, 3).setValue(intro);
+    sh.getRange(existing.row, 4).setValue(blogUrl || '');
     if (posterUrlOrNull) sh.getRange(existing.row, 2).setValue(posterUrlOrNull);
   } else {
-    sh.appendRow([name, posterUrlOrNull || '', intro]);
+    sh.appendRow([name, posterUrlOrNull || '', intro, blogUrl || '']);
   }
 }
 
@@ -261,19 +270,24 @@ function setCurrentExhibitionName_(name) {
   else sh.getRange(2, 1).setValue(name);
 }
 
-function getExhibitionInfo_() {
-  var name = getCurrentExhibitionName_();
+// 전시명 하나를 받아 포스터/서문/블로그링크/참여 작품(전체 필드) 까지 전부 채운 상세 객체를 만든다.
+// getExhibitionInfo_(현재 전시)와 action=exhibitionDetail(임의의 전시) 양쪽에서 공용으로 사용.
+function getExhibitionFull_(name, groupsCache, artCache) {
   if (!name) return null;
-  var groups = getExhibitionGroups_();
+  var groups = groupsCache || getExhibitionGroups_();
   var group = null;
   for (var i = 0; i < groups.length; i++) if (groups[i].name === name) { group = groups[i]; break; }
   if (!group) return null;
   var meta = getExhibitionMetaMap_()[name] || {};
-  var allArt = getArtworks_();
+  var allArt = artCache || getArtworks_();
   var byId = {};
   allArt.forEach(function (a) { byId[a.id] = a; });
   var items = group.artworkIds.map(function (id) { return byId[id]; }).filter(Boolean);
-  return { name: name, period: group.period, place: group.place, poster: meta.poster || '', intro: meta.intro || '', items: items };
+  return { name: name, period: group.period, place: group.place, poster: meta.poster || '', intro: meta.intro || '', blogUrl: meta.blogUrl || '', items: items };
+}
+
+function getExhibitionInfo_() {
+  return getExhibitionFull_(getCurrentExhibitionName_());
 }
 
 function getExhibitionArchive_() {
@@ -282,7 +296,18 @@ function getExhibitionArchive_() {
   var metaMap = getExhibitionMetaMap_();
   return groups.map(function (g) {
     var meta = metaMap[g.name] || {};
-    return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length, poster: meta.poster || '', intro: meta.intro || '' };
+    return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length, poster: meta.poster || '', intro: meta.intro || '', blogUrl: meta.blogUrl || '' };
+  });
+}
+
+// action=exhibitionList : 현재 전시 포함 전체 목록(진행중 표시용), 작품 상세까지는 포함하지 않음(가벼움)
+function getExhibitionList_() {
+  var current = getCurrentExhibitionName_();
+  var groups = getExhibitionGroups_();
+  var metaMap = getExhibitionMetaMap_();
+  return groups.map(function (g) {
+    var meta = metaMap[g.name] || {};
+    return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length, poster: meta.poster || '', intro: meta.intro || '', blogUrl: meta.blogUrl || '', isCurrent: g.name === current };
   });
 }
 

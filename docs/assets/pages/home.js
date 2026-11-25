@@ -49,8 +49,8 @@
 
   function init() {
     var s1 = $("#st-works"), s2 = $("#st-artists"), s3 = $("#st-projects");
-    Promise.all([D.loadArtworks(), D.loadExhibitionInfo()]).then(function (res) {
-      var artRes = res[0], exInfo = res[1];
+    Promise.all([D.loadArtworks(), D.loadExhibitionInfo(), D.loadExhibitionGroups()]).then(function (res) {
+      var artRes = res[0], exInfo = res[1], groupsRes = res[2];
       var items = artRes.items;
 
       renderHeroFrame(items);
@@ -58,12 +58,9 @@
       renderExBanner(exInfo.item);
 
       var owned = items.filter(function (a) { return !a.notOwned; });
-      var artists = {}, projects = {};
-      items.forEach(function (a) { if (a.artist) artists[a.artist] = 1; if (a.project) projects[a.project] = 1; });
-      s1.textContent = owned.length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
-
-      var pick = owned.filter(function (a) { return a.image; }).slice(0, 4).concat(owned.filter(function (a) { return !a.image; })).slice(0, 4);
-      G.fillGrid($("#home-pick"), pick, true);
+      var artists = {};
+      items.forEach(function (a) { if (a.artist) artists[a.artist] = 1; });
+      s1.textContent = owned.length; s2.textContent = Object.keys(artists).length; s3.textContent = (groupsRes.items || []).length;
 
       G.sampleNotice($("#home-notice"), artRes);
 

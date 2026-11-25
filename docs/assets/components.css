@@ -40,8 +40,8 @@
 /* ---------- search / filter ---------- */
 .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:22px}
 .search{flex:1 1 260px;position:relative}
-.search input{width:100%;padding:14px 18px 14px 44px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);font:inherit;color:var(--ink);min-height:48px}
-.search input:focus{outline:none;border-color:var(--point)}
+.search input[type="search"]{width:100%;padding:14px 18px 14px 44px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);font:inherit;color:var(--ink);min-height:48px}
+.search input[type="search"]:focus{outline:none;border-color:var(--point)}
 .search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--ink-faint)}
 .pills{display:flex;flex-wrap:wrap;gap:8px}
 .pill{padding:8px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:13.5px;color:var(--ink-muted);transition:.15s;min-height:38px}
