@@ -57,16 +57,17 @@
       D.markCurrent(items, exInfo.item);
       renderExBanner(exInfo.item);
 
+      var owned = items.filter(function (a) { return !a.notOwned; });
       var artists = {}, projects = {};
       items.forEach(function (a) { if (a.artist) artists[a.artist] = 1; if (a.project) projects[a.project] = 1; });
-      s1.textContent = items.length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
+      s1.textContent = owned.length; s2.textContent = Object.keys(artists).length; s3.textContent = Object.keys(projects).length;
 
-      var pick = items.filter(function (a) { return a.image; }).slice(0, 4).concat(items.filter(function (a) { return !a.image; })).slice(0, 4);
+      var pick = owned.filter(function (a) { return a.image; }).slice(0, 4).concat(owned.filter(function (a) { return !a.image; })).slice(0, 4);
       G.fillGrid($("#home-pick"), pick, true);
 
       G.sampleNotice($("#home-notice"), artRes);
 
-      var works = items.filter(function (a) { return a.image; }).concat(items.filter(function (a) { return !a.image; }));
+      var works = owned.filter(function (a) { return a.image; }).concat(owned.filter(function (a) { return !a.image; }));
       var worksRow = $("#home-works-row"); worksRow.innerHTML = "";
       works.slice(0, 12).forEach(function (a) { worksRow.appendChild(G.artCard(a, true)); });
 

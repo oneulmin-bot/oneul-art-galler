@@ -20,6 +20,7 @@
  *  - POST adminSaveExhibitionMeta   {name, intro, posterBase64?, posterMime?} : 전시 포스터/서문 저장(업서트)
  *
  * 개인정보 보호: 작가 연락처, 대화청년 이름/연락처 열은 절대 반환하지 않습니다.
+ * 소장 종료 표시: '작품리스트' P열(16번째 열)에 '반환' 또는 '폐기'라고 적으면 그 작품은 더 이상 소장하지 않는 작품으로 표시됩니다.
  *
  * 설치 방법 (기존 '미술작품갤러리' 프로젝트와 함수 이름이 겹치므로 반드시 '새 프로젝트'에서)
  *  1) script.google.com > 새 프로젝트 만들기 → 이 코드 전체를 붙여넣기 (기본 myFunction 은 삭제)
@@ -159,10 +160,13 @@ function getArtworks_() {
     var id = get(row, 'id');
     var title = get(row, 'title');
     if (!id || !title) continue;
+    // P열(16번째 열, 0-기준 인덱스 15)에 '반환' 또는 '폐기'라고 적혀 있으면 더 이상 소장하지 않는 작품으로 표시
+    var statusRaw = String(row[15] == null ? '' : row[15]).trim();
     items.push({
       id: id, year: get(row, 'year'), project: get(row, 'project'), artist: get(row, 'artist'),
       title: title, size: get(row, 'size'), medium: get(row, 'medium'), intro: get(row, 'intro'),
-      bio: get(row, 'bio'), topic: get(row, 'topic'), image: get(row, 'image'), audio: get(row, 'audio')
+      bio: get(row, 'bio'), topic: get(row, 'topic'), image: get(row, 'image'), audio: get(row, 'audio'),
+      notOwned: statusRaw === '반환' || statusRaw === '폐기'
     });
   }
   return items;
