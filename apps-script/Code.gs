@@ -9,6 +9,7 @@
  *  - action=exhibitionGroups  : '전시리스트DB' 기준 전체 전시 목록(현재 포함, 이름/기간/장소/작품수만) — 관리자 페이지 드롭다운용
  *  - action=exhibitionList    : 전체 전시 목록(현재 포함, isCurrent 표시, 포스터/서문/블로그링크 포함) — 전시 페이지 단일 목록용
  *  - action=exhibitionDetail&name=... : 전시 하나의 전체 상세(포스터/서문/블로그링크/참여 작품 전체 필드) — 전시 상세 페이지용
+ *  - action=news              : '소식' 시트의 보도자료/블로그/홈페이지 글 목록 JSON 반환(최신순)
  *
  * 공개 POST 액션 (비밀번호 불필요)
  *  - {action:"guestbook", name, message} : '방명록' 시트에 한 줄 추가
@@ -32,7 +33,7 @@
  *     (전시 포스터 업로드 기능 때문에 구글 드라이브 접근 권한도 함께 승인하라는 팝업이 뜰 수 있습니다 — 승인해주세요)
  *  4) docs/assets/config.js 의 API_URL 에 붙여넣기
  *  코드를 수정한 뒤에는 '배포 관리 > 새 버전'으로 다시 배포해야 반영됩니다.
- *  '전시설정', '현재전시' 시트는 처음 쓸 때 자동으로 만들어집니다.
+ *  '전시설정', '현재전시', '소식' 시트는 처음 쓸 때 자동으로 만들어집니다.
  */
 
 var SHEET_ID = '1KOsZF002BuDbeHEU1c-M8fqVI5uPnZJSnm7gmVDXsik'; // 작품 리스트 스프레드시트 ID
@@ -44,6 +45,8 @@ var EXMETA_SHEET = '전시설정';       // 신규: 전시 1개당 1행, 포스�
 var EXMETA_HEADERS = ['전시명', '포스터URL', '서문', '블로그링크'];
 var CURRENT_SHEET = '현재전시';      // 신규: 전시명 1개 값만 보관
 var CURRENT_HEADERS = ['전시명'];
+var NEWS_SHEET = '소식';            // 신규: 보도자료/블로그/홈페이지 글, 운영진이 직접 한 줄씩 입력
+var NEWS_HEADERS = ['날짜', '제목', '출처', '링크'];
 
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || 'artworks';
@@ -59,6 +62,7 @@ function doGet(e) {
       if (!item) return json_({ ok: false, error: 'not found' });
       return json_({ ok: true, item: item });
     }
+    if (action === 'news') return json_({ ok: true, items: getNews_() });
     if (action === 'adminPing') {
       if (!checkPass_(e.parameter.pass)) return json_({ ok: false, error: 'bad pass' });
       return json_({ ok: true });
@@ -309,6 +313,40 @@ function getExhibitionList_() {
     var meta = metaMap[g.name] || {};
     return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length, poster: meta.poster || '', intro: meta.intro || '', blogUrl: meta.blogUrl || '', isCurrent: g.name === current };
   });
+}
+
+/* ---------- 소식 (보도자료/블로그/홈페이지 글) ---------- */
+function newsSheet_() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName(NEWS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(NEWS_SHEET);
+    sh.appendRow(NEWS_HEADERS);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, NEWS_HEADERS.length).setFontWeight('bold');
+  }
+  return sh;
+}
+function getNews_() {
+  var sh = newsSheet_();
+  var values = sh.getDataRange().getValues();
+  if (values.length < 2) return [];
+  var heads = values[0];
+  function col(key) { for (var c = 0; c < heads.length; c++) if (norm_(heads[c]).indexOf(key) === 0) return c; return -1; }
+  var cDate = col('날짜'), cTitle = col('제목'), cSource = col('출처'), cUrl = col('링크');
+
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var title = cTitle < 0 ? '' : String(row[cTitle] || '').trim();
+    var url = cUrl < 0 ? '' : String(row[cUrl] || '').trim();
+    if (!title || !url) continue;
+    var rawDate = cDate < 0 ? '' : row[cDate];
+    var date = rawDate instanceof Date ? Utilities.formatDate(rawDate, 'Asia/Seoul', 'yyyy-MM-dd') : String(rawDate || '').trim();
+    out.push({ title: title, source: cSource < 0 ? '' : String(row[cSource] || '').trim(), date: date, url: url });
+  }
+  out.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); }); // 최신순
+  return out;
 }
 
 /* ---------- 전시 포스터 업로드 (구글 드라이브) ---------- */

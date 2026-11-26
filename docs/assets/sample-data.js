@@ -26,3 +26,7 @@ window.ONEUL_SAMPLE_GROUPS = [
  {name:"혼자였던 적 없는 꿈 展",period:"2026.9.2.(수) ~ 9.10.(목) 10:00~20:00",place:"알지비큐브 홍대",count:2,poster:"",intro:window.ONEUL_SAMPLE_EXHIBITION_INFO.intro,blogUrl:"",isCurrent:true},
  {name:"짧은 계절, 긴 마음 展",period:"2026.3.5.(목) ~ 3.12.(목)",place:"공간 사일삼 (서울시 종로구)",count:4,poster:"",intro:"짧게 지나간 계절 속에서도 오래 남는 마음들을 모은 전시였습니다.",blogUrl:"",isCurrent:false}
 ];
+/* 소식(보도자료/블로그/홈페이지 글)은 구글시트 '소식' 탭(날짜/제목/출처/링크)에서 관리합니다. */
+window.ONEUL_SAMPLE_NEWS = [
+ {title:"청년 작가들의 '꿈', 작은 캔버스에 담다",source:"ㅇㅇ일보",date:"2026-09-05",url:"https://example.com/article"}
+];
