@@ -9,6 +9,7 @@
  *  - action=exhibitionGroups  : '전시리스트DB' 기준 전체 전시 목록(현재 포함, 이름/기간/장소/작품수만) — 관리자 페이지 드롭다운용
  *  - action=exhibitionList    : 전체 전시 목록(현재 포함, isCurrent 표시, 포스터/서문/블로그링크 포함) — 전시 페이지 단일 목록용
  *  - action=exhibitionDetail&name=... : 전시 하나의 전체 상세(포스터/서문/블로그링크/참여 작품 전체 필드) — 전시 상세 페이지용
+ *  - action=news              : '소식' 시트의 공개 기사 목록(최신순, 공개여부 N 제외) — 소식 페이지용
  *
  * 공개 POST 액션 (비밀번호 불필요)
  *  - {action:"guestbook", name, message} : '방명록' 시트에 한 줄 추가
@@ -16,10 +17,14 @@
  * 관리자 GET/POST 액션 (모두 pass 필드를 ADMIN_PASS 스크립트 속성과 비교, 불일치 시 거부)
  *  - GET  action=adminPing                             : 비밀번호 확인용
  *  - GET  action=adminGuestbook                        : 숨김 포함 방명록 전체 목록(관리자 전용)
+ *  - GET  action=adminNews                             : 비공개 포함 소식 전체 목록(관리자 전용)
  *  - POST adminHideGuest        {row, hide}             : 방명록 숨김/숨김해제
  *  - POST adminDeleteGuest      {row}                   : 방명록 행 삭제
  *  - POST adminSetCurrentExhibition {name}              : '현재전시' 포인터 저장
  *  - POST adminSaveExhibitionMeta   {name, intro, blogUrl?, posterBase64?, posterMime?} : 전시 포스터/서문/블로그링크 저장(업서트)
+ *  - POST adminSaveNews     {row?, date, title, source, url, exhibition} : 소식 추가(row 없음) / 수정(row 지정)
+ *  - POST adminHideNews     {row, hide}                 : 소식 비공개/공개 전환
+ *  - POST adminDeleteNews   {row}                       : 소식 행 삭제
  *
  * 개인정보 보호: 작가 연락처, 대화청년 이름/연락처 열은 절대 반환하지 않습니다.
  * 소장 종료 표시: '작품리스트' P열(16번째 열)에 '반환' 또는 '폐기'라고 적으면 그 작품은 더 이상 소장하지 않는 작품으로 표시됩니다.
@@ -32,7 +37,8 @@
  *     (전시 포스터 업로드 기능 때문에 구글 드라이브 접근 권한도 함께 승인하라는 팝업이 뜰 수 있습니다 — 승인해주세요)
  *  4) docs/assets/config.js 의 API_URL 에 붙여넣기
  *  코드를 수정한 뒤에는 '배포 관리 > 새 버전'으로 다시 배포해야 반영됩니다.
- *  '전시설정', '현재전시' 시트는 처음 쓸 때 자동으로 만들어집니다.
+ *  '전시설정', '현재전시', '소식' 시트는 처음 쓸 때 자동으로 만들어집니다.
+ *  ('소식' 시트는 처음 만들어질 때 기존에 모아둔 보도기사가 미리 채워집니다.)
  */
 
 var SHEET_ID = '1KOsZF002BuDbeHEU1c-M8fqVI5uPnZJSnm7gmVDXsik'; // 작품 리스트 스프레드시트 ID
@@ -44,6 +50,18 @@ var EXMETA_SHEET = '전시설정';       // 신규: 전시 1개당 1행, 포스�
 var EXMETA_HEADERS = ['전시명', '포스터URL', '서문', '블로그링크'];
 var CURRENT_SHEET = '현재전시';      // 신규: 전시명 1개 값만 보관
 var CURRENT_HEADERS = ['전시명'];
+var NEWS_SHEET = '소식';             // 신규: 보도자료·블로그·홈페이지 글 링크, 1행 = 기사 1건
+var NEWS_HEADERS = ['날짜', '제목', '출처', '링크', '관련전시', '공개여부'];
+// '소식' 시트를 처음 만들 때 채워 넣는 기존 보도기사 (날짜가 YYYY-MM이면 게재일 미확인)
+var NEWS_SEED = [
+  ['2025-10', "청년의 고슴도치 마음, 예술로 풀어내다… '가시에서 뿔로 展' 개최", '청년개발자신문', 'https://www.devtimes.co.kr/news/433922', '[2025] 고슴도치청년 - 가시에서 뿔로展', ''],
+  ['2024-07', "사단법인 오늘은, 돈의문박물관마을에서 '청년zip중' 전시 개최", '영등포신문', 'http://www.ybstv.net/news/article.html?no=61366', '돈의문전박물관마을_청년집중 통합전', ''],
+  ['2022-09-20', "사단법인 오늘은, 청년의 날 행사에서 청년 이야기 담은 '청년zip중' 선봬", '뉴스와이어', 'https://www.newswire.co.kr/newsRead.php?no=951607', '', ''],
+  ['2022-09', "사단법인 오늘은, 청년의 날 행사에서 청년 이야기 담은 '청년zip중' 선봬", '아트앤컬처', 'https://www.art-culture.co.kr/magazine_culture/38', '', ''],
+  ['2022-09', "사단법인 오늘은, 청년 이야기 담은 '청년zip중' 전시 진행", '대한민국청소년기자단', 'https://youthpress.net/xe/kypnews_article_science/668460', '', ''],
+  ['2021-11-24', "사단법인 오늘은, 보호종료청년 온라인 전시회 '3평의 시간' 개최", '시민의창(한국시민기자협회)', 'http://www.civilreporter.co.kr/news/articleView.html?idxno=88550', '', ''],
+  ['2021-11-24', "사단법인 오늘은, 보호종료청년 온라인 전시회 '3평의 시간' 개최", '시사엔', 'http://sisa-n.com/View.aspx?No=2123690', '', '']
+];
 
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || 'artworks';
@@ -54,6 +72,7 @@ function doGet(e) {
     if (action === 'exhibitionArchive') return json_({ ok: true, items: getExhibitionArchive_() });
     if (action === 'exhibitionGroups') return json_({ ok: true, items: getExhibitionGroups_().map(function (g) { return { name: g.name, period: g.period, place: g.place, count: g.artworkIds.length }; }) });
     if (action === 'exhibitionList') return json_({ ok: true, items: getExhibitionList_() });
+    if (action === 'news') return json_({ ok: true, items: getNews_(false) });
     if (action === 'exhibitionDetail') {
       var item = getExhibitionFull_(e.parameter.name || '');
       if (!item) return json_({ ok: false, error: 'not found' });
@@ -66,6 +85,10 @@ function doGet(e) {
     if (action === 'adminGuestbook') {
       if (!checkPass_(e.parameter.pass)) return json_({ ok: false, error: 'bad pass' });
       return json_({ ok: true, items: getGuestsAdmin_() });
+    }
+    if (action === 'adminNews') {
+      if (!checkPass_(e.parameter.pass)) return json_({ ok: false, error: 'bad pass' });
+      return json_({ ok: true, items: getNews_(true) });
     }
     return json_({ ok: false, error: 'unknown action' });
   } catch (err) {
@@ -118,6 +141,39 @@ function doPost(e) {
       }
       saveExhibitionMeta_(name2, clean_(body.intro, 4000), posterUrl, clean_(body.blogUrl, 300));
       return json_({ ok: true, posterUrl: posterUrl || undefined });
+    }
+    if (action === 'adminSaveNews') {
+      var rowVals = [
+        clean_(body.date, 10),
+        clean_(body.title, 200),
+        clean_(body.source, 60),
+        clean_(body.url, 500),
+        clean_(body.exhibition, 120)
+      ];
+      if (!/^\d{4}-\d{2}(-\d{2})?$/.test(rowVals[0])) return json_({ ok: false, error: '날짜는 YYYY-MM-DD 형식으로 입력해주세요.' });
+      if (!rowVals[1]) return json_({ ok: false, error: '제목이 필요합니다.' });
+      if (!/^https?:\/\//i.test(rowVals[3])) return json_({ ok: false, error: '링크는 http:// 또는 https:// 로 시작해야 합니다.' });
+      var nsh = newsSheet_();
+      if (body.row) {
+        var r = Number(body.row);
+        if (!(r >= 2 && r <= nsh.getLastRow())) return json_({ ok: false, error: '수정할 행을 찾을 수 없습니다.' });
+        nsh.getRange(r, 1, 1, 5).setValues([rowVals]);
+      } else {
+        nsh.appendRow(rowVals.concat(['']));
+      }
+      return json_({ ok: true });
+    }
+    if (action === 'adminHideNews') {
+      var hr = Number(body.row), hsh = newsSheet_();
+      if (!(hr >= 2 && hr <= hsh.getLastRow())) return json_({ ok: false, error: '행을 찾을 수 없습니다.' });
+      hsh.getRange(hr, 6).setValue(body.hide ? 'N' : '');
+      return json_({ ok: true });
+    }
+    if (action === 'adminDeleteNews') {
+      var dr = Number(body.row), dsh = newsSheet_();
+      if (!(dr >= 2 && dr <= dsh.getLastRow())) return json_({ ok: false, error: '행을 찾을 수 없습니다.' });
+      dsh.deleteRow(dr);
+      return json_({ ok: true });
     }
 
     return json_({ ok: false, error: 'unknown action' });
@@ -367,6 +423,47 @@ function getGuestsAdmin_() {
       hidden: String(row[3]).toUpperCase() === 'Y'
     });
   }
+  return out;
+}
+
+/* ---------- 소식 ---------- */
+function newsSheet_() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName(NEWS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(NEWS_SHEET);
+    sh.getRange('A:A').setNumberFormat('@'); // 날짜를 글자 그대로 보관(자동 날짜 변환 방지)
+    sh.appendRow(NEWS_HEADERS);
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, NEWS_HEADERS.length).setFontWeight('bold');
+    if (NEWS_SEED.length) sh.getRange(2, 1, NEWS_SEED.length, NEWS_HEADERS.length).setValues(NEWS_SEED);
+    sh.setColumnWidth(2, 420);
+    sh.setColumnWidth(4, 320);
+  }
+  return sh;
+}
+
+function getNews_(includeHidden) {
+  var values = newsSheet_().getDataRange().getValues();
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var title = String(row[1] == null ? '' : row[1]).trim();
+    var url = String(row[3] == null ? '' : row[3]).trim();
+    if (!title || !url) continue;
+    var hidden = String(row[5]).trim().toUpperCase() === 'N';
+    if (hidden && !includeHidden) continue;
+    var item = {
+      date: row[0] instanceof Date ? Utilities.formatDate(row[0], 'Asia/Seoul', 'yyyy-MM-dd') : String(row[0] == null ? '' : row[0]).trim(),
+      title: title,
+      source: String(row[2] == null ? '' : row[2]).trim(),
+      url: url,
+      exhibition: String(row[4] == null ? '' : row[4]).trim()
+    };
+    if (includeHidden) { item.row = r + 1; item.hidden = hidden; }
+    out.push(item);
+  }
+  out.sort(function (a, b) { return b.date.localeCompare(a.date); });
   return out;
 }
 

@@ -37,6 +37,7 @@
     <div class="admin-tabs" role="tablist">
       <button role="tab" aria-selected="true" data-panel="guest">방명록 관리</button>
       <button role="tab" aria-selected="false" data-panel="exhibit">전시 관리</button>
+      <button role="tab" aria-selected="false" data-panel="news">소식 관리</button>
     </div>
 
     <div class="admin-panel on" id="panel-guest">
@@ -81,6 +82,45 @@
           <button class="btn btn-ghost btn-sm" id="ex-set-current">이 전시를 현재 전시로 지정</button>
         </div>
         <div class="admin-status" id="ex-status"></div>
+      </div>
+    </div>
+
+    <div class="admin-panel" id="panel-news">
+      <div class="admin-card">
+        <h2 id="news-form-title">소식 등록</h2>
+        <p class="sub">보도자료·블로그·홈페이지 글 링크를 등록하면 소식 페이지에 바로 나타납니다(구글시트 '소식' 탭에 저장).</p>
+        <div class="admin-form-row">
+          <div>
+            <label for="news-date">날짜</label>
+            <input type="text" id="news-date" placeholder="2026-09-05" inputmode="numeric">
+          </div>
+          <div>
+            <label for="news-source">출처</label>
+            <input type="text" id="news-source" placeholder="ㅇㅇ일보, 오늘은 블로그 등">
+          </div>
+        </div>
+        <label for="news-title">제목</label>
+        <input type="text" id="news-title" placeholder="기사 제목">
+        <label for="news-url">링크</label>
+        <input type="url" id="news-url" placeholder="https://...">
+        <label for="news-ex">관련 전시 (선택)</label>
+        <select id="news-ex"><option value="">선택 안 함</option></select>
+        <p class="sub" style="margin-top:8px">날짜는 YYYY-MM-DD 형식이에요. 게재일을 모르면 YYYY-MM까지만 적어도 됩니다.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-primary btn-sm" id="news-save">등록</button>
+          <button class="btn btn-ghost btn-sm" id="news-cancel" hidden>수정 취소</button>
+        </div>
+        <div class="admin-status" id="news-form-status"></div>
+      </div>
+      <div class="admin-card">
+        <h2>등록된 소식</h2>
+        <p class="sub">비공개는 소식 페이지에서만 빠지고 시트에는 남습니다. 삭제는 시트에서 완전히 제거됩니다(되돌릴 수 없음).</p>
+        <table class="admin-table">
+          <thead><tr><th>날짜</th><th>제목</th><th>출처</th><th>작업</th></tr></thead>
+          <tbody id="news-tbody"></tbody>
+        </table>
+        <div id="news-empty" class="admin-empty" hidden>등록된 소식이 없습니다.</div>
+        <div class="admin-status" id="news-status"></div>
       </div>
     </div>
   </div>
