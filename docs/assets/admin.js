@@ -126,6 +126,7 @@
         if (g.isCurrent) currentName = g.name;
       });
       exState.groups = groups; exState.metaByName = metaByName; exState.currentName = currentName;
+      fillNewsExhibitions(groups);
 
       var select = $("#ex-pick"); select.innerHTML = "";
       if (!groups.length) {
@@ -191,5 +192,103 @@
     }).catch(function (e) { setStatus("#ex-status", false, e.message); });
   });
 
-  function loadAll() { loadGuestAdmin(); loadExhibit(); }
+  /* ---------- news management ---------- */
+  var newsState = { editingRow: null };
+
+  function resetNewsForm() {
+    newsState.editingRow = null;
+    ["#news-date", "#news-source", "#news-title", "#news-url"].forEach(function (id) { $(id).value = ""; });
+    $("#news-ex").value = "";
+    $("#news-form-title").textContent = "소식 등록";
+    $("#news-save").textContent = "등록";
+    $("#news-cancel").hidden = true;
+  }
+
+  function fillNewsExhibitions(groups) {
+    var sel = $("#news-ex"), keep = sel.value;
+    sel.innerHTML = "";
+    sel.appendChild(el("option", { value: "", text: "선택 안 함" }));
+    (groups || []).forEach(function (g) { sel.appendChild(el("option", { value: g.name, text: g.name })); });
+    sel.value = keep;
+  }
+
+  function editNews(n) {
+    newsState.editingRow = n.row;
+    $("#news-date").value = n.date || "";
+    $("#news-source").value = n.source || "";
+    $("#news-title").value = n.title || "";
+    $("#news-url").value = n.url || "";
+    var sel = $("#news-ex");
+    if (n.exhibition && !Array.prototype.some.call(sel.options, function (o) { return o.value === n.exhibition; })) {
+      sel.appendChild(el("option", { value: n.exhibition, text: n.exhibition }));
+    }
+    sel.value = n.exhibition || "";
+    $("#news-form-title").textContent = "소식 수정";
+    $("#news-save").textContent = "수정 저장";
+    $("#news-cancel").hidden = false;
+    $("#news-form-title").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function loadNewsAdmin() {
+    apiGet("adminNews", "&pass=" + encodeURIComponent(C.safeSessionGet(PASS_KEY) || "")).then(function (j) {
+      var items = j.items || [];
+      var tbody = $("#news-tbody"); tbody.innerHTML = "";
+      $("#news-empty").hidden = !!items.length;
+      items.forEach(function (n) {
+        tbody.appendChild(el("tr", { class: n.hidden ? "hidden-row" : "" }, [
+          el("td", { text: n.date || "" }),
+          el("td", { class: "msgcell" }, [
+            /^https?:\/\//i.test(n.url) ? el("a", { href: n.url, target: "_blank", rel: "noopener", text: n.title }) : n.title,
+            n.exhibition ? el("div", { class: "sub", style: "margin-top:4px;font-size:12px", text: n.exhibition }) : null
+          ]),
+          el("td", { text: n.source || "" }),
+          el("td", {}, [el("div", { class: "admin-actions" }, [
+            el("button", { text: "수정", onclick: function () { editNews(n); } }),
+            el("button", { text: n.hidden ? "공개" : "비공개", onclick: function () { hideNews(n.row, !n.hidden); } }),
+            el("button", { class: "danger", text: "삭제", onclick: function () { deleteNews(n); } })
+          ])])
+        ]));
+      });
+    }).catch(function (e) {
+      var msg = /unknown action/.test(e.message) ? "Apps Script를 새 버전으로 재배포해야 소식 관리를 쓸 수 있어요." : e.message;
+      setStatus("#news-status", false, msg);
+    });
+  }
+  function hideNews(row, hide) {
+    apiPost("adminHideNews", { row: row, hide: hide }).then(function () {
+      setStatus("#news-status", true, hide ? "비공개로 바꿨습니다." : "공개로 바꿨습니다."); loadNewsAdmin();
+    }).catch(function (e) { setStatus("#news-status", false, e.message); });
+  }
+  function deleteNews(n) {
+    if (!confirm("'" + n.title + "' 소식을 완전히 삭제할까요? 되돌릴 수 없습니다.")) return;
+    apiPost("adminDeleteNews", { row: n.row }).then(function () {
+      if (newsState.editingRow) resetNewsForm();
+      setStatus("#news-status", true, "삭제되었습니다."); loadNewsAdmin();
+    }).catch(function (e) { setStatus("#news-status", false, e.message); });
+  }
+
+  $("#news-cancel").addEventListener("click", resetNewsForm);
+  $("#news-save").addEventListener("click", function () {
+    var payload = {
+      date: $("#news-date").value.trim(),
+      source: $("#news-source").value.trim(),
+      title: $("#news-title").value.trim(),
+      url: $("#news-url").value.trim(),
+      exhibition: $("#news-ex").value
+    };
+    if (!/^\d{4}-\d{2}(-\d{2})?$/.test(payload.date)) return setStatus("#news-form-status", false, "날짜는 2026-09-05 처럼 입력해주세요.");
+    if (!payload.title) return setStatus("#news-form-status", false, "제목을 입력해주세요.");
+    if (!/^https?:\/\//i.test(payload.url)) return setStatus("#news-form-status", false, "링크는 https:// 로 시작해야 해요.");
+    if (newsState.editingRow) payload.row = newsState.editingRow;
+    var btn = this; btn.disabled = true;
+    var wasEdit = !!newsState.editingRow;
+    apiPost("adminSaveNews", payload).then(function () {
+      resetNewsForm();
+      setStatus("#news-form-status", true, wasEdit ? "수정되었습니다." : "등록되었습니다.");
+      loadNewsAdmin();
+    }).catch(function (e) { setStatus("#news-form-status", false, e.message); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  function loadAll() { loadGuestAdmin(); loadExhibit(); loadNewsAdmin(); }
 })();
